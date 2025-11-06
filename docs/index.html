@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ffmcp - AI command-line tool inspired by ffmpeg</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ffmcp</h1>
+            <p class="tagline">A complete, cross-platform solution to record, convert and stream AI services from the command line.</p>
+        </header>
+
+        <nav>
+            <a href="#download">Download</a>
+            <a href="https://github.com/brandonhenry/ffmcp" target="_blank">Source Code</a>
+            <a href="https://github.com/brandonhenry/ffmcp/blob/main/README.md" target="_blank">Documentation</a>
+        </nav>
+
+        <main>
+            <section class="intro">
+                <h2>What is ffmcp?</h2>
+                <p>
+                    <strong>ffmcp</strong> is a command-line tool inspired by ffmpeg that provides a unified interface 
+                    for accessing AI services. It allows you to interact with multiple AI providers (OpenAI, Anthropic, etc.) 
+                    from a single, simple command-line interface.
+                </p>
+                <p>
+                    Just like ffmpeg revolutionized multimedia processing, ffmcp brings the same simplicity and power 
+                    to AI interactions - making it easy to generate text, analyze images, transcribe audio, and much more 
+                    directly from your terminal.
+                </p>
+            </section>
+
+            <section class="features">
+                <h2>Features</h2>
+                <ul>
+                    <li>🚀 <strong>Unified CLI</strong> - Single command-line interface for multiple AI providers</li>
+                    <li>🔌 <strong>Modular</strong> - Easy to add new AI providers</li>
+                    <li>📝 <strong>Simple</strong> - Works just like ffmpeg - simple, powerful, composable</li>
+                    <li>🔧 <strong>Configurable</strong> - Manage API keys and settings easily</li>
+                    <li>📊 <strong>Streaming</strong> - Real-time streaming support for responses</li>
+                    <li>🎨 <strong>Full OpenAI Support</strong> - Vision, images, audio, embeddings, and assistants</li>
+                </ul>
+            </section>
+
+            <section id="download" class="download">
+                <h2>Download</h2>
+                <div class="download-options">
+                    <div class="download-box">
+                        <h3>Install via pip</h3>
+                        <div class="code-block">
+                            <code>pip install ffmcp</code>
+                        </div>
+                        <p class="note">Requires Python 3.8 or higher</p>
+                    </div>
+                    
+                    <div class="download-box">
+                        <h3>Install from source</h3>
+                        <div class="code-block">
+                            <code>git clone https://github.com/brandonhenry/ffmcp.git<br>
+cd ffmcp<br>
+pip install -e .</code>
+                        </div>
+                    </div>
+
+                    <div class="download-box">
+                        <h3>Quick start</h3>
+                        <div class="code-block">
+                            <code># Configure API key<br>
+ffmcp config -p openai -k YOUR_KEY<br><br>
+# Generate text<br>
+ffmcp generate "Hello, world!"</code>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="examples">
+                <h2>Quick Examples</h2>
+                <div class="example-box">
+                    <h3>Text Generation</h3>
+                    <div class="code-block">
+                        <code>ffmcp generate "Write a haiku about coding"</code>
+                    </div>
+                </div>
+                
+                <div class="example-box">
+                    <h3>Image Analysis</h3>
+                    <div class="code-block">
+                        <code>ffmcp openai vision "What's in this image?" photo.jpg</code>
+                    </div>
+                </div>
+                
+                <div class="example-box">
+                    <h3>Audio Transcription</h3>
+                    <div class="code-block">
+                        <code>ffmcp openai transcribe audio.mp3</code>
+                    </div>
+                </div>
+            </section>
+
+            <section class="links">
+                <h2>Resources</h2>
+                <ul class="resource-links">
+                    <li><a href="https://github.com/brandonhenry/ffmcp" target="_blank">GitHub Repository</a></li>
+                    <li><a href="https://github.com/brandonhenry/ffmcp/blob/main/README.md" target="_blank">Full Documentation</a></li>
+                    <li><a href="https://github.com/brandonhenry/ffmcp/issues" target="_blank">Report Issues</a></li>
+                </ul>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2025 ffmcp. Licensed under MIT License.</p>
+        </footer>
+    </div>
+</body>
+</html>
+

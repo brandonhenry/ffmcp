@@ -1,0 +1,321 @@
+# How to Use ffmcp
+
+## Basic Setup
+
+### 1. Activate Virtual Environment
+```bash
+source venv/bin/activate
+```
+
+### 2. Set Your API Key
+```bash
+# Set OpenAI API key
+ffmcp config -p openai -k sk-your-openai-api-key-here
+
+# Or use environment variable
+export OPENAI_API_KEY=sk-your-openai-api-key-here
+```
+
+## Basic Text Generation
+
+### Simple Generation
+```bash
+ffmcp generate "Write a haiku about Python programming"
+```
+
+### With Options
+```bash
+# Use specific model
+ffmcp generate "Explain quantum computing" -p openai -m gpt-4o-mini
+
+# Stream the response (see it as it generates)
+ffmcp generate "Tell me a story" -s
+
+# Control creativity (temperature: 0.0-2.0)
+ffmcp generate "Creative story" -t 0.9
+
+# Limit response length
+ffmcp generate "Summarize this" --max-tokens 100
+```
+
+### Read from File / Write to File
+```bash
+# Read prompt from file
+ffmcp generate -i prompt.txt
+
+# Write output to file
+ffmcp generate "Write code" -o output.txt
+
+# Both
+ffmcp generate -i prompt.txt -o output.txt
+```
+
+### Pipe Input
+```bash
+# Pipe text into ffmcp
+echo "Translate to French: Hello world" | ffmcp generate
+
+# Chain with other commands
+cat document.txt | ffmcp generate | grep "important"
+```
+
+## Chat Mode (Conversational)
+
+```bash
+# Simple chat
+ffmcp chat "What is 2+2?" -p openai
+
+# With system message (sets the AI's role)
+ffmcp chat "Solve this math problem" -s "You are a helpful math tutor" -p openai
+```
+
+## OpenAI Features
+
+### 🖼️ Image Generation (DALL·E)
+
+```bash
+# Generate an image
+ffmcp openai image "A futuristic cityscape at sunset"
+
+# DALL·E 2 (cheaper, faster)
+ffmcp openai image "A cat wearing sunglasses" -m dall-e-2
+
+# High quality
+ffmcp openai image "Abstract art" --quality hd
+
+# Natural style (vs vivid)
+ffmcp openai image "Portrait" --style natural
+
+# Save URL to file
+ffmcp openai image "Beautiful landscape" -o image_url.txt
+```
+
+### 👁️ Vision / Image Analysis
+
+```bash
+# Analyze a single image
+ffmcp openai vision "What's in this image?" photo.jpg
+
+# Analyze multiple images
+ffmcp openai vision "Compare these images" img1.jpg img2.png
+
+# With custom model
+ffmcp openai vision "Describe this" photo.jpg -m gpt-4o
+```
+
+### 🎤 Audio Transcription (Whisper)
+
+```bash
+# Basic transcription
+ffmcp openai transcribe audio.mp3
+
+# With language hint (for better accuracy)
+ffmcp openai transcribe spanish_audio.mp3 -l es
+
+# With prompt (helps with technical terms, names, etc.)
+ffmcp openai transcribe meeting.mp3 -p "This is a technical meeting about AI"
+
+# Get JSON output with timestamps
+ffmcp openai transcribe audio.mp3 --json -o transcript.json
+
+# Save to file
+ffmcp openai transcribe audio.mp3 -o transcript.txt
+```
+
+### 🌍 Audio Translation
+
+```bash
+# Translate any audio to English
+ffmcp openai translate spanish_audio.mp3
+
+# With prompt
+ffmcp openai translate audio.mp3 -p "Technical presentation"
+```
+
+### 🔊 Text-to-Speech
+
+```bash
+# Convert text to speech
+ffmcp openai tts "Hello, world!" output.mp3
+
+# Choose voice (alloy, echo, fable, onyx, nova, shimmer)
+ffmcp openai tts "Welcome" speech.mp3 -v nova
+
+# Adjust speed (0.25 to 4.0)
+ffmcp openai tts "Important announcement" announcement.mp3 -s 1.2
+
+# High quality model
+ffmcp openai tts "Professional narration" narration.mp3 -m tts-1-hd
+```
+
+### 📊 Embeddings
+
+```bash
+# Create embeddings (for semantic search, similarity, etc.)
+ffmcp openai embed "This is sample text"
+
+# Custom dimensions
+ffmcp openai embed "Vectorize this" -d 256
+
+# Get full JSON with usage stats
+ffmcp openai embed "Text to embed" --json -o embeddings.json
+
+# Save to file
+ffmcp openai embed "Important text" -o vectors.json
+```
+
+### 🔧 Function Calling / Tools
+
+```bash
+# First, create a tools.json file
+cat > tools.json << 'EOF'
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "get_weather",
+      "description": "Get the current weather in a location",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "The city and state, e.g. San Francisco, CA"
+          }
+        },
+        "required": ["location"]
+      }
+    }
+  }
+]
+EOF
+
+# Use function calling
+ffmcp openai tools "What's the weather in San Francisco?" -t tools.json
+```
+
+### 🤖 Assistants API
+
+```bash
+# Create an assistant
+ffmcp openai assistant create "Math Tutor" "You are a helpful math tutor" -o assistant_id.txt
+
+# Create a conversation thread
+ffmcp openai assistant thread -o thread_id.txt
+
+# Add a message to the thread
+ffmcp openai assistant message $(cat thread_id.txt) "Solve 2x + 5 = 15"
+
+# Run the assistant
+ffmcp openai assistant run $(cat thread_id.txt) $(cat assistant_id.txt)
+
+# Get all messages from thread
+ffmcp openai assistant messages $(cat thread_id.txt)
+
+# Upload a file for the assistant to use
+ffmcp openai assistant upload document.pdf
+```
+
+## Real-World Examples
+
+### Example 1: Transcribe and Summarize a Meeting
+```bash
+# Step 1: Transcribe audio
+ffmcp openai transcribe meeting.mp3 -o transcript.txt
+
+# Step 2: Summarize transcript
+ffmcp generate -i transcript.txt -o summary.txt -p openai
+```
+
+### Example 2: Generate Image from Text Description
+```bash
+# Generate image
+ffmcp openai image "A futuristic AI laboratory with holographic displays" -o image_url.txt
+
+# Get the URL
+cat image_url.txt
+```
+
+### Example 3: Create Embeddings for Search
+```bash
+# Create embeddings for multiple documents
+for file in *.txt; do
+    ffmcp openai embed "$(cat $file)" -o "${file%.txt}_embedding.json"
+done
+```
+
+### Example 4: Batch Process Files
+```bash
+# Process all text files
+for file in *.txt; do
+    ffmcp generate -i "$file" -o "${file%.txt}_processed.txt" -p openai
+done
+```
+
+### Example 5: Interactive Script
+```bash
+#!/bin/bash
+echo "Enter your prompt:"
+read PROMPT
+ffmcp generate "$PROMPT" -p openai -s
+```
+
+## Common Options
+
+### Provider Selection
+```bash
+-p openai      # Use OpenAI (default)
+-p anthropic   # Use Anthropic Claude
+```
+
+### Model Selection
+```bash
+-m gpt-4o-mini           # OpenAI default
+-m gpt-4o                # More capable
+-m claude-3-5-sonnet     # Anthropic
+```
+
+### Output Control
+```bash
+-o output.txt    # Write to file
+-s               # Stream (real-time)
+--json           # JSON output (for some commands)
+```
+
+### Generation Parameters
+```bash
+-t 0.7           # Temperature (0.0-2.0, creativity)
+--max-tokens 500 # Limit response length
+```
+
+## Getting Help
+
+```bash
+# General help
+ffmcp --help
+
+# Command-specific help
+ffmcp generate --help
+ffmcp openai --help
+ffmcp openai image --help
+
+# List providers
+ffmcp providers
+```
+
+## Tips
+
+1. **Always activate venv first**: `source venv/bin/activate`
+2. **Use streaming** (`-s`) for long responses to see progress
+3. **Save API keys** in config: `ffmcp config -p openai -k YOUR_KEY`
+4. **Pipe commands** together for complex workflows
+5. **Use `-o` flag** to save outputs for later use
+6. **Check help** for each command: `ffmcp COMMAND --help`
+
+## Troubleshooting
+
+- **"Command not found"**: Activate venv with `source venv/bin/activate`
+- **"API key not configured"**: Run `ffmcp config -p openai -k YOUR_KEY`
+- **"Module not found"**: Install with `pip install -e ".[all]"`
+- **Permission errors**: Make sure venv is activated
+

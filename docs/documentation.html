@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation - ffmcp</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="logo.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="logo.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="logo.png">
+    <link rel="icon" type="image/png" href="logo.png">
+    <meta name="theme-color" content="#1e3c72">
+    <link rel="manifest" href="site.webmanifest">
+    
+    <style>
+        .doc-nav {
+            position: sticky;
+            top: 0;
+            background-color: #1e3c72;
+            padding: 1rem 2rem;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .doc-nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 1rem;
+            font-weight: 500;
+        }
+        .doc-nav a:hover {
+            text-decoration: underline;
+        }
+        .toc {
+            background-color: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+        .toc h3 {
+            margin-top: 0;
+            color: #1e3c72;
+        }
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .toc li {
+            margin: 0.5rem 0;
+        }
+        .toc a {
+            color: #2a5298;
+            text-decoration: none;
+        }
+        .toc a:hover {
+            text-decoration: underline;
+        }
+        .command-section {
+            margin: 3rem 0;
+            padding: 2rem;
+            background-color: #fafafa;
+            border-left: 4px solid #2a5298;
+            border-radius: 4px;
+        }
+        .command-section h2 {
+            margin-top: 0;
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .command-example {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 1.5rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1rem;
+            line-height: 1.8;
+            position: relative;
+        }
+        .command-example code {
+            color: #f8f8f2;
+            white-space: pre;
+        }
+        .command-example .comment {
+            color: #75715e;
+        }
+        .command-example .prompt {
+            color: #a6e22e;
+        }
+        .option-list {
+            background-color: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+        .option-list dt {
+            font-weight: bold;
+            color: #1e3c72;
+            margin-top: 1rem;
+        }
+        .option-list dt:first-child {
+            margin-top: 0;
+        }
+        .option-list dd {
+            margin-left: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .workflow-box {
+            background-color: #e8f4f8;
+            border: 2px solid #2a5298;
+            border-radius: 5px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        .workflow-box h3 {
+            margin-top: 0;
+            color: #1e3c72;
+        }
+        .tip-box {
+            background-color: #fff9e6;
+            border-left: 4px solid #ffa500;
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+        }
+        .tip-box strong {
+            color: #d97706;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ffmcp</h1>
+            <p class="tagline">Complete Documentation & Usage Guide</p>
+        </header>
+
+        <nav class="doc-nav">
+            <a href="index.html">Home</a>
+            <a href="#installation">Installation</a>
+            <a href="#quick-start">Quick Start</a>
+            <a href="#commands">Commands</a>
+            <a href="#examples">Examples</a>
+        </nav>
+
+        <main>
+            <div class="toc">
+                <h3>Table of Contents</h3>
+                <ul>
+                    <li><a href="#installation">Installation</a></li>
+                    <li><a href="#quick-start">Quick Start</a></li>
+                    <li><a href="#basic-commands">Basic Commands</a></li>
+                    <li><a href="#text-generation">Text Generation</a></li>
+                    <li><a href="#chat-mode">Chat Mode</a></li>
+                    <li><a href="#openai-features">OpenAI Features</a></li>
+                    <li><a href="#real-world-examples">Real-World Examples</a></li>
+                    <li><a href="#options-reference">Options Reference</a></li>
+                    <li><a href="#troubleshooting">Troubleshooting</a></li>
+                </ul>
+            </div>
+
+            <section id="installation" class="command-section">
+                <h2>Installation</h2>
+                
+                <h3>Install via pip</h3>
+                <div class="command-example">
+<code><span class="prompt">$</span> pip install ffmcp</code>
+                </div>
+
+                <h3>Install from Source</h3>
+                <div class="command-example">
+<code><span class="prompt">$</span> git clone https://github.com/brandonhenry/ffmcp.git
+<span class="prompt">$</span> cd ffmcp
+<span class="prompt">$</span> python3 -m venv venv
+<span class="prompt">$</span> source venv/bin/activate  <span class="comment"># On Windows: venv\Scripts\activate</span>
+<span class="prompt">$</span> pip install -e .</code>
+                </div>
+
+                <h3>Install with Specific Providers</h3>
+                <div class="command-example">
+<code><span class="prompt">$</span> pip install -e ".[openai]"      <span class="comment"># OpenAI only</span>
+<span class="prompt">$</span> pip install -e ".[anthropic]"  <span class="comment"># Anthropic only</span>
+<span class="prompt">$</span> pip install -e ".[all]"         <span class="comment"># All providers</span></code>
+                </div>
+            </section>
+
+            <section id="quick-start" class="command-section">
+                <h2>Quick Start</h2>
+
+                <h3>1. Configure API Keys</h3>
+                <div class="command-example">
+<code><span class="comment"># Set OpenAI API key</span>
+<span class="prompt">$</span> ffmcp config -p openai -k YOUR_OPENAI_API_KEY
+
+<span class="comment"># Set Anthropic API key</span>
+<span class="prompt">$</span> ffmcp config -p anthropic -k YOUR_ANTHROPIC_API_KEY
+
+<span class="comment"># Or use environment variables</span>
+<span class="prompt">$</span> export OPENAI_API_KEY=your_key_here
+<span class="prompt">$</span> export ANTHROPIC_API_KEY=your_key_here</code>
+                </div>
+
+                <h3>2. Test Basic Commands</h3>
+                <div class="command-example">
+<code><span class="comment"># Get help</span>
+<span class="prompt">$</span> ffmcp --help
+<span class="prompt">$</span> ffmcp generate --help
+<span class="prompt">$</span> ffmcp openai --help
+
+<span class="comment"># Test text generation</span>
+<span class="prompt">$</span> ffmcp generate "Hello, world!" -p openai
+
+<span class="comment"># List available providers</span>
+<span class="prompt">$</span> ffmcp providers</code>
+                </div>
+            </section>
+
+            <section id="basic-commands" class="command-section">
+                <h2>Basic Commands</h2>
+
+                <div class="option-list">
+                    <dl>
+                        <dt><code>ffmcp generate</code></dt>
+                        <dd>Generate text from a prompt</dd>
+
+                        <dt><code>ffmcp chat</code></dt>
+                        <dd>Chat conversationally with AI</dd>
+
+                        <dt><code>ffmcp config</code></dt>
+                        <dd>Manage API keys and configuration</dd>
+
+                        <dt><code>ffmcp providers</code></dt>
+                        <dd>List available AI providers</dd>
+
+                        <dt><code>ffmcp openai</code></dt>
+                        <dd>Access OpenAI-specific features (vision, images, audio, etc.)</dd>
+                    </dl>
+                </div>
+            </section>
+
+            <section id="text-generation" class="command-section">
+                <h2>Text Generation</h2>
+
+                <h3>Simple Generation</h3>
+                <div class="command-example">
+<code><span class="prompt">$</span> ffmcp generate "Write a haiku about Python programming"</code>
+                </div>
+
+                <h3>With Provider and Model</h3>
+                <div class="command-example">
+<code><span class="prompt">$</span> ffmcp generate "Explain quantum computing" -p openai -m gpt-4o-mini</code>
+                </div>
+
+                <h3>Streaming Response</h3>
+                <div class="command-example">
+<code><span class="comment"># See response as it generates (real-time)</span>
+<span class="prompt">$</span> ffmcp generate "Tell me a story" -s</code>
+                </div>
+
+                <h3>Control Creativity (Temperature)</h3>
+                <div class="command-example">
+<code><span class="comment"># Temperature range: 0.0 (deterministic) to 2.0 (very creative)</span>
+<span class="prompt">$</span> ffmcp generate "Creative story" -t 0.9</code>
+                </div>
+
+                <h3>Limit Response Length</h3>
+                <div class="command-example">
+<code><span class="prompt">$</span> ffmcp generate "Summarize this" --max-tokens 100</code>
+                </div>
+
+                <h3>Read from File</h3>
+                <div class="command-example">
+<code><span class="comment"># Read prompt from file</span>
+<span class="prompt">$</span> ffmcp generate -i prompt.txt
+
+<span class="comment"># Write output to file</span>
+<span class="prompt">$</span> ffmcp generate "Write code" -o output.txt
+
+<span class="comment"># Both input and output files</span>
+<span class="prompt">$</span> ffmcp generate -i prompt.txt -o output.txt</code>
+                </div>
+
+                <h3>Pipe Input</h3>
+                <div class="command-example">
+<code><span class="comment"># Pipe text into ffmcp</span>
+<span class="prompt">$</span> echo "Translate to French: Hello world" | ffmcp generate
+
+<span class="comment"># Chain with other commands</span>
+<span class="prompt">$</span> cat document.txt | ffmcp generate | grep "important" > filtered.txt</code>
+                </div>
+
+                <h3>Advanced Options</h3>
+                <div class="command-example">
+<code><span class="prompt">$</span> ffmcp generate "Creative story" \
+  -p openai \
+  -m gpt-4o \
+  -t 0.9 \
+  --max-tokens 500 \
+  -s</code>
+                </div>
+            </section>
+
+            <section id="chat-mode" class="command-section">
+                <h2>Chat Mode</h2>
+
+                <h3>Simple Chat</h3>
+                <div class="command-example">
+<code><span class="prompt">$</span> ffmcp chat "What is 2+2?" -p openai</code>
+                </div>
+
+                <h3>With System Message</h3>
+                <div class="command-example">
+<code><span class="comment"># Set the AI's role/personality</span>
+<span class="prompt">$</span> ffmcp chat "Solve this math problem" -s "You are a helpful math tutor" -p openai</code>
+                </div>
+            </section>
+
+            <section id="openai-features" class="command-section">
+                <h2>OpenAI Features</h2>
+
+                <h3>🖼️ Image Generation (DALL·E)</h3>
+                <div class="command-example">
+<code><span class="comment"># Generate image with DALL·E 3 (default)</span>
+<span class="prompt">$</span> ffmcp openai image "A futuristic cityscape at sunset"
+
+<span class="comment"># Use DALL·E 2 (cheaper, faster)</span>
+<span class="prompt">$</span> ffmcp openai image "A cat wearing sunglasses" -m dall-e-2
+
+<span class="comment"># Custom size (DALL·E 2 only)</span>
+<span class="prompt">$</span> ffmcp openai image "A cat wearing sunglasses" -m dall-e-2 --size 512x512
+
+<span class="comment"># High quality</span>
+<span class="prompt">$</span> ffmcp openai image "Abstract art" --quality hd
+
+<span class="comment"># Natural style (vs vivid)</span>
+<span class="prompt">$</span> ffmcp openai image "Portrait" --style natural
+
+<span class="comment"># Save URL to file</span>
+<span class="prompt">$</span> ffmcp openai image "Beautiful landscape" -o image_url.txt</code>
+                </div>
+
+                <h3>👁️ Vision / Image Analysis</h3>
+                <div class="command-example">
+<code><span class="comment"># Analyze a single image</span>
+<span class="prompt">$</span> ffmcp openai vision "What's in this image?" photo.jpg
+
+<span class="comment"># Analyze multiple images</span>
+<span class="prompt">$</span> ffmcp openai vision "Compare these images" img1.jpg img2.png
+
+<span class="comment"># With custom model and temperature</span>
+<span class="prompt">$</span> ffmcp openai vision "Describe this" photo.jpg -m gpt-4o -t 0.5</code>
+                </div>
+
+                <h3>🎤 Audio Transcription (Whisper)</h3>
+                <div class="command-example">
+<code><span class="comment"># Basic transcription</span>
+<span class="prompt">$</span> ffmcp openai transcribe audio.mp3
+
+<span class="comment"># With language hint (for better accuracy)</span>
+<span class="prompt">$</span> ffmcp openai transcribe spanish_audio.mp3 -l es
+
+<span class="comment"># With prompt (helps with technical terms, names, etc.)</span>
+<span class="prompt">$</span> ffmcp openai transcribe meeting.mp3 -p "This is a technical meeting about AI"
+
+<span class="comment"># Get JSON output with timestamps</span>
+<span class="prompt">$</span> ffmcp openai transcribe audio.mp3 --json -o transcript.json
+
+<span class="comment"># Save to text file</span>
+<span class="prompt">$</span> ffmcp openai transcribe audio.mp3 -o transcript.txt</code>
+                </div>
+
+                <h3>🌍 Audio Translation</h3>
+                <div class="command-example">
+<code><span class="comment"># Translate any audio to English</span>
+<span class="prompt">$</span> ffmcp openai translate spanish_audio.mp3
+
+<span class="comment"># With prompt for better accuracy</span>
+<span class="prompt">$</span> ffmcp openai translate audio.mp3 -p "Technical presentation"</code>
+                </div>
+
+                <h3>🔊 Text-to-Speech</h3>
+                <div class="command-example">
+<code><span class="comment"># Convert text to speech</span>
+<span class="prompt">$</span> ffmcp openai tts "Hello, world!" output.mp3
+
+<span class="comment"># Choose voice (alloy, echo, fable, onyx, nova, shimmer)</span>
+<span class="prompt">$</span> ffmcp openai tts "Welcome" speech.mp3 -v nova
+
+<span class="comment"># Adjust speed (0.25 to 4.0)</span>
+<span class="prompt">$</span> ffmcp openai tts "Important announcement" announcement.mp3 -s 1.2
+
+<span class="comment"># High quality model</span>
+<span class="prompt">$</span> ffmcp openai tts "Professional narration" narration.mp3 -m tts-1-hd</code>
+                </div>
+
+                <h3>📊 Embeddings</h3>
+                <div class="command-example">
+<code><span class="comment"># Create embeddings (for semantic search, similarity, etc.)</span>
+<span class="prompt">$</span> ffmcp openai embed "This is sample text"
+
+<span class="comment"># Custom dimensions</span>
+<span class="prompt">$</span> ffmcp openai embed "Vectorize this" -d 256
+
+<span class="comment"># Get full JSON with usage stats</span>
+<span class="prompt">$</span> ffmcp openai embed "Text to embed" --json -o embeddings.json
+
+<span class="comment"># Save to file</span>
+<span class="prompt">$</span> ffmcp openai embed "Important text" -o vectors.json</code>
+                </div>
+
+                <h3>🔧 Function Calling / Tools</h3>
+                <div class="command-example">
+<code><span class="comment"># First, create a tools.json file</span>
+<span class="prompt">$</span> cat > tools.json << 'EOF'
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "get_weather",
+      "description": "Get the current weather in a location",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "The city and state, e.g. San Francisco, CA"
+          }
+        },
+        "required": ["location"]
+      }
+    }
+  }
+]
+EOF
+
+<span class="comment"># Use function calling</span>
+<span class="prompt">$</span> ffmcp openai tools "What's the weather in San Francisco?" -t tools.json</code>
+                </div>
+
+                <h3>🤖 Assistants API</h3>
+                <div class="command-example">
+<code><span class="comment"># Create an assistant</span>
+<span class="prompt">$</span> ffmcp openai assistant create "Math Tutor" "You are a helpful math tutor" -o assistant_id.txt
+
+<span class="comment"># Create a conversation thread</span>
+<span class="prompt">$</span> ffmcp openai assistant thread -o thread_id.txt
+
+<span class="comment"># Add a message to the thread</span>
+<span class="prompt">$</span> ffmcp openai assistant message $(cat thread_id.txt) "Solve 2x + 5 = 15"
+
+<span class="comment"># Run the assistant</span>
+<span class="prompt">$</span> ffmcp openai assistant run $(cat thread_id.txt) $(cat assistant_id.txt)
+
+<span class="comment"># Get all messages from thread</span>
+<span class="prompt">$</span> ffmcp openai assistant messages $(cat thread_id.txt)
+
+<span class="comment"># Upload a file for the assistant to use</span>
+<span class="prompt">$</span> ffmcp openai assistant upload document.pdf</code>
+                </div>
+            </section>
+
+            <section id="real-world-examples" class="command-section">
+                <h2>Real-World Examples</h2>
+
+                <div class="workflow-box">
+                    <h3>Example 1: Transcribe and Summarize a Meeting</h3>
+                    <div class="command-example">
+<code><span class="comment"># Step 1: Transcribe audio</span>
+<span class="prompt">$</span> ffmcp openai transcribe meeting.mp3 -o transcript.txt
+
+<span class="comment"># Step 2: Summarize transcript</span>
+<span class="prompt">$</span> ffmcp generate -i transcript.txt -o summary.txt -p openai</code>
+                    </div>
+                </div>
+
+                <div class="workflow-box">
+                    <h3>Example 2: Generate Image from Text Description</h3>
+                    <div class="command-example">
+<code><span class="comment"># Generate image</span>
+<span class="prompt">$</span> ffmcp openai image "A futuristic AI laboratory with holographic displays" -o image_url.txt
+
+<span class="comment"># Get the URL</span>
+<span class="prompt">$</span> cat image_url.txt</code>
+                    </div>
+                </div>
+
+                <div class="workflow-box">
+                    <h3>Example 3: Create Embeddings for Search</h3>
+                    <div class="command-example">
+<code><span class="comment"># Create embeddings for multiple documents</span>
+<span class="prompt">$</span> for file in *.txt; do
+    ffmcp openai embed "$(cat $file)" -o "${file%.txt}_embedding.json"
+done</code>
+                    </div>
+                </div>
+
+                <div class="workflow-box">
+                    <h3>Example 4: Batch Process Files</h3>
+                    <div class="command-example">
+<code><span class="comment"># Process all text files</span>
+<span class="prompt">$</span> for file in *.txt; do
+    ffmcp generate -i "$file" -o "${file%.txt}_processed.txt" -p openai
+done</code>
+                    </div>
+                </div>
+
+                <div class="workflow-box">
+                    <h3>Example 5: Complete Workflow</h3>
+                    <div class="command-example">
+<code><span class="comment"># 1. Transcribe audio</span>
+<span class="prompt">$</span> ffmcp openai transcribe meeting.mp3 -o transcript.txt
+
+<span class="comment"># 2. Summarize transcript</span>
+<span class="prompt">$</span> ffmcp generate -i transcript.txt -o summary.txt
+
+<span class="comment"># 3. Generate image based on summary</span>
+<span class="prompt">$</span> ffmcp openai image "$(cat summary.txt | head -c 100)"
+
+<span class="comment"># 4. Create embeddings for search</span>
+<span class="prompt">$</span> ffmcp openai embed "$(cat transcript.txt)" -o embeddings.json</code>
+                    </div>
+                </div>
+
+                <div class="workflow-box">
+                    <h3>Example 6: Interactive Script</h3>
+                    <div class="command-example">
+<code><span class="comment">#!/bin/bash</span>
+echo "Enter your prompt:"
+read PROMPT
+ffmcp generate "$PROMPT" -p openai -s</code>
+                    </div>
+                </div>
+
+                <div class="workflow-box">
+                    <h3>Example 7: Integration in Scripts</h3>
+                    <div class="command-example">
+<code><span class="comment">#!/bin/bash</span>
+RESULT=$(ffmcp generate "Translate to French: Hello world" -p openai)
+echo "Translation: $RESULT"</code>
+                    </div>
+                </div>
+            </section>
+
+            <section id="options-reference" class="command-section">
+                <h2>Options Reference</h2>
+
+                <h3>Provider Selection</h3>
+                <div class="option-list">
+                    <dl>
+                        <dt><code>-p openai</code></dt>
+                        <dd>Use OpenAI (default provider)</dd>
+
+                        <dt><code>-p anthropic</code></dt>
+                        <dd>Use Anthropic Claude</dd>
+                    </dl>
+                </div>
+
+                <h3>Model Selection</h3>
+                <div class="option-list">
+                    <dl>
+                        <dt><code>-m gpt-4o-mini</code></dt>
+                        <dd>OpenAI default model (fast, cost-effective)</dd>
+
+                        <dt><code>-m gpt-4o</code></dt>
+                        <dd>More capable OpenAI model</dd>
+
+                        <dt><code>-m claude-3-5-sonnet</code></dt>
+                        <dd>Anthropic Claude model</dd>
+
+                        <dt><code>-m dall-e-2</code></dt>
+                        <dd>DALL·E 2 for image generation</dd>
+
+                        <dt><code>-m tts-1-hd</code></dt>
+                        <dd>High-quality text-to-speech model</dd>
+                    </dl>
+                </div>
+
+                <h3>Output Control</h3>
+                <div class="option-list">
+                    <dl>
+                        <dt><code>-o output.txt</code></dt>
+                        <dd>Write output to file</dd>
+
+                        <dt><code>-s</code></dt>
+                        <dd>Stream response in real-time</dd>
+
+                        <dt><code>--json</code></dt>
+                        <dd>Output as JSON (for some commands)</dd>
+
+                        <dt><code>-i input.txt</code></dt>
+                        <dd>Read input from file</dd>
+                    </dl>
+                </div>
+
+                <h3>Generation Parameters</h3>
+                <div class="option-list">
+                    <dl>
+                        <dt><code>-t 0.7</code></dt>
+                        <dd>Temperature (0.0-2.0) - Controls creativity/randomness</dd>
+
+                        <dt><code>--max-tokens 500</code></dt>
+                        <dd>Limit response length in tokens</dd>
+                    </dl>
+                </div>
+
+                <h3>Image Generation Options</h3>
+                <div class="option-list">
+                    <dl>
+                        <dt><code>--size 1024x1024</code></dt>
+                        <dd>Image size (DALL·E 2 only: 256x256, 512x512, 1024x1024)</dd>
+
+                        <dt><code>--quality hd</code></dt>
+                        <dd>Image quality: standard or hd (DALL·E 3 only)</dd>
+
+                        <dt><code>--style natural</code></dt>
+                        <dd>Image style: natural or vivid (DALL·E 3 only)</dd>
+                    </dl>
+                </div>
+
+                <h3>Audio Options</h3>
+                <div class="option-list">
+                    <dl>
+                        <dt><code>-l es</code></dt>
+                        <dd>Language hint for transcription (ISO 639-1 code)</dd>
+
+                        <dt><code>-p "Context prompt"</code></dt>
+                        <dd>Prompt to help with transcription accuracy</dd>
+
+                        <dt><code>-v nova</code></dt>
+                        <dd>TTS voice: alloy, echo, fable, onyx, nova, shimmer</dd>
+
+                        <dt><code>-s 1.2</code></dt>
+                        <dd>TTS speed (0.25 to 4.0)</dd>
+                    </dl>
+                </div>
+
+                <h3>Embedding Options</h3>
+                <div class="option-list">
+                    <dl>
+                        <dt><code>-d 256</code></dt>
+                        <dd>Custom embedding dimensions</dd>
+                    </dl>
+                </div>
+
+                <h3>Function Calling Options</h3>
+                <div class="option-list">
+                    <dl>
+                        <dt><code>-t tools.json</code></dt>
+                        <dd>Path to JSON file containing tool definitions</dd>
+                    </dl>
+                </div>
+            </section>
+
+            <section id="troubleshooting" class="command-section">
+                <h2>Troubleshooting</h2>
+
+                <h3>Common Issues</h3>
+                <div class="option-list">
+                    <dl>
+                        <dt><strong>"Command not found"</strong></dt>
+                        <dd>Make sure the virtual environment is activated: <code>source venv/bin/activate</code></dd>
+
+                        <dt><strong>"API key not configured"</strong></dt>
+                        <dd>Run <code>ffmcp config -p openai -k YOUR_KEY</code> or set environment variable</dd>
+
+                        <dt><strong>"Module not found"</strong></dt>
+                        <dd>Install dependencies: <code>pip install -e ".[all]"</code></dd>
+
+                        <dt><strong>Permission errors</strong></dt>
+                        <dd>Ensure virtual environment is activated and you have write permissions</dd>
+
+                        <dt><strong>Import errors</strong></dt>
+                        <dd>Make sure you installed with provider extras: <code>pip install -e ".[openai]"</code></dd>
+                    </dl>
+                </div>
+
+                <div class="tip-box">
+                    <strong>💡 Tips:</strong>
+                    <ul>
+                        <li>Always activate venv first: <code>source venv/bin/activate</code></li>
+                        <li>Use streaming (<code>-s</code>) for long responses to see progress</li>
+                        <li>Save API keys in config: <code>ffmcp config -p openai -k YOUR_KEY</code></li>
+                        <li>Pipe commands together for complex workflows</li>
+                        <li>Use <code>-o</code> flag to save outputs for later use</li>
+                        <li>Check help for each command: <code>ffmcp COMMAND --help</code></li>
+                    </ul>
+                </div>
+
+                <h3>Getting Help</h3>
+                <div class="command-example">
+<code><span class="comment"># General help</span>
+<span class="prompt">$</span> ffmcp --help
+
+<span class="comment"># Command-specific help</span>
+<span class="prompt">$</span> ffmcp generate --help
+<span class="prompt">$</span> ffmcp openai --help
+<span class="prompt">$</span> ffmcp openai image --help
+
+<span class="comment"># List providers</span>
+<span class="prompt">$</span> ffmcp providers</code>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2025 ffmcp. Licensed under MIT License.</p>
+            <p><a href="index.html" style="color: white;">← Back to Home</a></p>
+        </footer>
+    </div>
+</body>
+</html>
+

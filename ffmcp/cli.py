@@ -1,4 +1,9 @@
 """Main CLI entry point for ffmcp"""
+import warnings
+# Suppress Pydantic V1 compatibility warnings (harmless, doesn't affect functionality)
+warnings.filterwarnings('ignore', message='.*Pydantic V1.*', category=UserWarning)
+warnings.filterwarnings('ignore', message='.*pydantic.*', category=UserWarning)
+
 import click
 import sys
 import json

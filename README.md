@@ -2,6 +2,11 @@
 
 **ffmcp** - AI command-line tool inspired by ffmpeg. Access any AI service from the command line with a unified interface.
 
+[![npm version](https://img.shields.io/npm/v/ffmcp.svg)](https://www.npmjs.com/package/ffmcp)
+[![npm downloads](https://img.shields.io/npm/dm/ffmcp.svg)](https://www.npmjs.com/package/ffmcp)
+
+**Install via npm:** `npm install -g ffmcp` | **Install from source:** See [Installation](#installation) below
+
 ## Features
 
 - 🚀 **Unified CLI**: Single command-line interface for multiple AI providers
@@ -17,6 +22,39 @@
 - 🎤 **Voiceover/TTS**: Full text-to-speech support with multiple providers (ElevenLabs), voice management, and agent voice integration
 
 ## Installation
+
+ffmcp can be installed via **npm** (recommended) or **Python** (from source).
+
+### Option 1: npm Installation (Recommended)
+
+**Prerequisites:** You need both the Python package and npm package installed.
+
+1. **Install Python package** (required):
+   ```bash
+   # Clone the repository
+   git clone https://github.com/yourusername/ffmcp.git
+   cd ffmcp
+   
+   # Create a virtual environment (recommended)
+   python3 -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   
+   # Install in development mode
+   pip install -e .
+   ```
+
+2. **Install npm package**:
+   ```bash
+   # Install globally (for CLI usage)
+   npm install -g ffmcp
+   
+   # Or install locally in your project
+   npm install ffmcp
+   ```
+
+**Note:** The npm package is a wrapper around the Python CLI. Both packages must be installed for it to work.
+
+### Option 2: Python Installation Only
 
 **Note:** This package is not currently published to PyPI. You must install it from the source code.
 
@@ -47,6 +85,7 @@ pip install -e ".[all]"
   pip install -e .
   ```
 - **Python Versions**: Supports Python 3.8 through 3.14.
+- **Node.js Versions**: npm package requires Node.js >= 14.0.0.
 
 ## Quick Start
 
@@ -832,6 +871,67 @@ RESULT=$(ffmcp generate "Translate to French: Hello world" -p openai)
 echo "Translation: $RESULT"
 ```
 
+### Programmatic Usage (Node.js/JavaScript)
+
+If you installed via npm, you can use ffmcp programmatically in your Node.js projects:
+
+```javascript
+const ffmcp = require('ffmcp');
+
+// Generate text
+const result = await ffmcp.generate('Write a haiku about coding', {
+  provider: 'openai',
+  model: 'gpt-4',
+  temperature: 0.7
+});
+console.log(result);
+
+// Chat with AI
+const response = await ffmcp.chat('Hello, how are you?', {
+  provider: 'anthropic',
+  system: 'You are a helpful assistant',
+  thread: 'conversation1'
+});
+console.log(response);
+
+// Stream responses
+const stream = ffmcp.streamGenerate('Tell me a story', {
+  provider: 'openai'
+});
+
+stream.on('data', (chunk) => {
+  process.stdout.write(chunk);
+});
+
+stream.on('end', () => {
+  console.log('\nDone!');
+});
+
+// Configure API keys
+await ffmcp.config('openai', 'your-api-key-here');
+
+// List providers
+const providers = await ffmcp.providers();
+console.log(providers);
+
+// Execute raw commands
+const output = await ffmcp.raw(['agent', 'list']);
+console.log(output);
+```
+
+**TypeScript Support:**
+```typescript
+import ffmcp from 'ffmcp';
+
+const result = await ffmcp.generate('Hello', {
+  provider: 'openai',
+  model: 'gpt-4',
+  temperature: 0.7
+});
+```
+
+See [NPM_README.md](NPM_README.md) for complete npm package documentation.
+
 ### Complete Workflow Example
 
 ```bash
@@ -968,6 +1068,7 @@ class CohereProvider(BaseProvider):
 - [x] Audio transcription/translation
 - [x] Voiceover/TTS system with multiple providers
 - [x] Agent voice integration
+- [x] npm package for Node.js/JavaScript users
 - [ ] Batch processing
 - [ ] Plugin system for custom providers
 - [ ] Python API for programmatic use
@@ -982,6 +1083,8 @@ ffmcp providers
 ```
 
 For comprehensive voiceover/TTS documentation, see [VOICEOVER.md](VOICEOVER.md).
+
+For npm package usage and Node.js/JavaScript API documentation, see [NPM_README.md](NPM_README.md).
 
 ## Contributing
 

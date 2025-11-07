@@ -196,20 +196,85 @@
             <section id="quick-start" class="command-section">
                 <h2>Quick Start</h2>
 
-                <h3>1. Configure API Keys</h3>
-                <div class="command-example">
-<code><span class="comment"># Set OpenAI API key</span>
-<span class="prompt">$</span> ffmcp config -p openai -k YOUR_OPENAI_API_KEY
+                <h3>1. Get API Keys</h3>
+                <p>You'll need API keys from the providers you want to use. Here's where to get them:</p>
+                
+                <div class="option-list">
+                    <dl>
+                        <dt><strong>OpenAI</strong></dt>
+                        <dd>Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a></dd>
 
-<span class="comment"># Set Anthropic API key</span>
-<span class="prompt">$</span> ffmcp config -p anthropic -k YOUR_ANTHROPIC_API_KEY
+                        <dt><strong>Anthropic Claude</strong></dt>
+                        <dd>Get your API key from <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a></dd>
 
-<span class="comment"># Or use environment variables</span>
-<span class="prompt">$</span> export OPENAI_API_KEY=your_key_here
-<span class="prompt">$</span> export ANTHROPIC_API_KEY=your_key_here</code>
+                        <dt><strong>Google Gemini</strong></dt>
+                        <dd>Get your API key from <a href="https://makersuite.google.com/app/apikey" target="_blank">makersuite.google.com/app/apikey</a></dd>
+
+                        <dt><strong>Groq</strong></dt>
+                        <dd>Get your API key from <a href="https://console.groq.com/" target="_blank">console.groq.com</a></dd>
+
+                        <dt><strong>DeepSeek</strong></dt>
+                        <dd>Get your API key from <a href="https://platform.deepseek.com/" target="_blank">platform.deepseek.com</a></dd>
+
+                        <dt><strong>Mistral AI</strong></dt>
+                        <dd>Get your API key from <a href="https://console.mistral.ai/" target="_blank">console.mistral.ai</a></dd>
+
+                        <dt><strong>Together AI</strong></dt>
+                        <dd>Get your API key from <a href="https://api.together.xyz/" target="_blank">api.together.xyz</a></dd>
+
+                        <dt><strong>Cohere</strong></dt>
+                        <dd>Get your API key from <a href="https://dashboard.cohere.com/" target="_blank">dashboard.cohere.com</a></dd>
+
+                        <dt><strong>Perplexity AI</strong></dt>
+                        <dd>Get your API key from <a href="https://www.perplexity.ai/settings/api" target="_blank">perplexity.ai/settings/api</a></dd>
+
+                        <dt><strong>ElevenLabs (TTS)</strong></dt>
+                        <dd>Get your API key from <a href="https://elevenlabs.io" target="_blank">elevenlabs.io</a> → Profile → API Keys</dd>
+
+                        <dt><strong>FishAudio (TTS)</strong></dt>
+                        <dd>Get your API key from <a href="https://fish.audio" target="_blank">fish.audio</a> or your FishAudio provider</dd>
+
+                        <dt><strong>Zep (Brains/Memory)</strong></dt>
+                        <dd>Get your API key from <a href="https://zep.cloud" target="_blank">zep.cloud</a> (Zep Cloud) or configure for self-hosted</dd>
+                    </dl>
                 </div>
 
-                <h3>2. Test Basic Commands</h3>
+                <h3>2. Configure API Keys</h3>
+                <div class="command-example">
+<code><span class="comment"># Configure API keys using ffmcp config command</span>
+<span class="prompt">$</span> ffmcp config -p openai -k YOUR_OPENAI_API_KEY
+<span class="prompt">$</span> ffmcp config -p anthropic -k YOUR_ANTHROPIC_API_KEY
+<span class="prompt">$</span> ffmcp config -p gemini -k YOUR_GEMINI_API_KEY
+<span class="prompt">$</span> ffmcp config -p groq -k YOUR_GROQ_API_KEY
+<span class="prompt">$</span> ffmcp config -p deepseek -k YOUR_DEEPSEEK_API_KEY
+<span class="prompt">$</span> ffmcp config -p mistral -k YOUR_MISTRAL_API_KEY
+<span class="prompt">$</span> ffmcp config -p together -k YOUR_TOGETHER_API_KEY
+<span class="prompt">$</span> ffmcp config -p cohere -k YOUR_COHERE_API_KEY
+<span class="prompt">$</span> ffmcp config -p perplexity -k YOUR_PERPLEXITY_API_KEY
+<span class="prompt">$</span> ffmcp config -p elevenlabs -k YOUR_ELEVENLABS_API_KEY
+<span class="prompt">$</span> ffmcp config -p fishaudio -k YOUR_FISHAUDIO_API_KEY
+<span class="prompt">$</span> ffmcp config -p zep -k YOUR_ZEP_API_KEY
+
+<span class="comment"># Or use environment variables (alternative method)</span>
+<span class="prompt">$</span> export OPENAI_API_KEY=your_key_here
+<span class="prompt">$</span> export ANTHROPIC_API_KEY=your_key_here
+<span class="prompt">$</span> export GEMINI_API_KEY=your_key_here
+<span class="prompt">$</span> export GROQ_API_KEY=your_key_here
+<span class="prompt">$</span> export DEEPSEEK_API_KEY=your_key_here
+<span class="prompt">$</span> export MISTRAL_API_KEY=your_key_here
+<span class="prompt">$</span> export TOGETHER_API_KEY=your_key_here
+<span class="prompt">$</span> export COHERE_API_KEY=your_key_here
+<span class="prompt">$</span> export PERPLEXITY_API_KEY=your_key_here
+<span class="prompt">$</span> export ELEVENLABS_API_KEY=your_key_here
+<span class="prompt">$</span> export FISHAUDIO_API_KEY=your_key_here
+<span class="prompt">$</span> export ZEP_CLOUD_API_KEY=your_key_here</code>
+                </div>
+
+                <div class="tip-box">
+                    <strong>💡 Tip:</strong> You don't need all API keys at once. Start with one provider (like OpenAI) and add more as needed. Environment variables take precedence over config file settings.
+                </div>
+
+                <h3>3. Test Basic Commands</h3>
                 <div class="command-example">
 <code><span class="comment"># Get help</span>
 <span class="prompt">$</span> ffmcp --help
@@ -221,6 +286,68 @@
 
 <span class="comment"># List available providers</span>
 <span class="prompt">$</span> ffmcp providers</code>
+                </div>
+
+                <h3>Quick Reference: API Key Locations</h3>
+                <div class="tip-box" style="margin-top: 1rem;">
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 0.5rem;">
+                        <thead>
+                            <tr style="background-color: #f0f0f0;">
+                                <th style="padding: 0.5rem; text-align: left; border-bottom: 2px solid #ddd;">Provider</th>
+                                <th style="padding: 0.5rem; text-align: left; border-bottom: 2px solid #ddd;">Where to Get API Key</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><strong>OpenAI</strong></td>
+                                <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><strong>Anthropic</strong></td>
+                                <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><strong>Gemini</strong></td>
+                                <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><a href="https://makersuite.google.com/app/apikey" target="_blank">makersuite.google.com/app/apikey</a></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><strong>Groq</strong></td>
+                                <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><a href="https://console.groq.com/" target="_blank">console.groq.com</a></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><strong>DeepSeek</strong></td>
+                                <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><a href="https://platform.deepseek.com/" target="_blank">platform.deepseek.com</a></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><strong>Mistral</strong></td>
+                                <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><a href="https://console.mistral.ai/" target="_blank">console.mistral.ai</a></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><strong>Together AI</strong></td>
+                                <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><a href="https://api.together.xyz/" target="_blank">api.together.xyz</a></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><strong>Cohere</strong></td>
+                                <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><a href="https://dashboard.cohere.com/" target="_blank">dashboard.cohere.com</a></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><strong>Perplexity</strong></td>
+                                <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><a href="https://www.perplexity.ai/settings/api" target="_blank">perplexity.ai/settings/api</a></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><strong>ElevenLabs</strong></td>
+                                <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><a href="https://elevenlabs.io" target="_blank">elevenlabs.io</a> → Profile → API Keys</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><strong>FishAudio</strong></td>
+                                <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><a href="https://fish.audio" target="_blank">fish.audio</a> or your provider</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><strong>Zep</strong></td>
+                                <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><a href="https://zep.cloud" target="_blank">zep.cloud</a> (Zep Cloud)</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </section>
 

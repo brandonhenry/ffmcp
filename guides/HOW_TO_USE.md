@@ -1,8 +1,38 @@
 # How to Use ffmcp
 
+## Installation
+
+### Install via pip (Recommended)
+```bash
+pip install ffmcp
+```
+
+Or with specific providers:
+```bash
+pip install ffmcp[openai]
+pip install ffmcp[anthropic]
+pip install ffmcp[all]
+```
+
+**Note:** On macOS with Homebrew Python, you may need to use a virtual environment:
+```bash
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install ffmcp
+```
+
+### Install from Source (Development)
+```bash
+git clone https://github.com/brandonhenry/ffmcp.git
+cd ffmcp
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -e .
+```
+
 ## Basic Setup
 
-### 1. Activate Virtual Environment
+### 1. Activate Virtual Environment (if using one)
 ```bash
 source venv/bin/activate
 ```
@@ -733,10 +763,10 @@ ffmcp providers
 
 ## Troubleshooting
 
-- **"Could not find a version that satisfies the requirement ffmcp"**: This package is not on PyPI. Install from source using `pip install -e .` from the project directory.
+- **"Could not find a version that satisfies the requirement ffmcp"**: Make sure you're using Python 3.8+ and pip is up to date: `pip install --upgrade pip`. If the issue persists, try installing from source: `pip install -e .` from the project directory.
 - **"externally-managed-environment" error**: You must use a virtual environment on macOS with Homebrew Python. Create one with `python3 -m venv venv` and activate it.
 - **"Command not found"**: Activate venv with `source venv/bin/activate`
 - **"API key not configured"**: Run `ffmcp config -p openai -k YOUR_KEY`
-- **"Module not found"**: Install with `pip install -e ".[all]"`
+- **"Module not found"**: Install with `pip install ffmcp[all]` or `pip install -e ".[all]"` if installing from source
 - **Permission errors**: Make sure venv is activated
 

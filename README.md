@@ -2,10 +2,12 @@
 
 **ffmcp** - AI command-line tool inspired by ffmpeg. Access any AI service from the command line with a unified interface.
 
+[![PyPI version](https://img.shields.io/pypi/v/ffmcp.svg)](https://pypi.org/project/ffmcp/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/ffmcp.svg)](https://pypi.org/project/ffmcp/)
 [![npm version](https://img.shields.io/npm/v/ffmcp.svg)](https://www.npmjs.com/package/ffmcp)
 [![npm downloads](https://img.shields.io/npm/dm/ffmcp.svg)](https://www.npmjs.com/package/ffmcp)
 
-**Install via npm:** `npm install -g ffmcp` | **Install from source:** See [Installation](#installation) below
+**Install via pip:** `pip install ffmcp` | **Install via npm:** `npm install -g ffmcp` | **Install from source:** See [Installation](#installation) below
 
 ## Features
 
@@ -23,24 +25,35 @@
 
 ## Installation
 
-ffmcp can be installed via **npm** (recommended) or **Python** (from source).
+### Option 1: pip Installation (Recommended)
 
-### Option 1: npm Installation (Recommended)
+The easiest way to install ffmcp is via pip:
 
-**Prerequisites:** You need both the Python package and npm package installed.
+```bash
+# Install the base package
+pip install ffmcp
+
+# Or install with specific providers
+pip install ffmcp[openai]
+pip install ffmcp[anthropic]
+pip install ffmcp[all]
+```
+
+**Note:** On macOS with Homebrew Python, you may encounter an "externally-managed-environment" error. Use a virtual environment:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install ffmcp
+```
+
+### Option 2: npm Installation
+
+**Prerequisites:** You need both the Python package (via pip) and npm package installed.
 
 1. **Install Python package** (required):
    ```bash
-   # Clone the repository
-   git clone https://github.com/brandonhenry/ffmcp.git
-   cd ffmcp
-   
-   # Create a virtual environment (recommended)
-   python3 -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   
-   # Install in development mode
-   pip install -e .
+   pip install ffmcp
    ```
 
 2. **Install npm package**:
@@ -54,9 +67,9 @@ ffmcp can be installed via **npm** (recommended) or **Python** (from source).
 
 **Note:** The npm package is a wrapper around the Python CLI. Both packages must be installed for it to work.
 
-### Option 2: Python Installation Only
+### Option 3: Install from Source (Development)
 
-**Note:** This package is not currently published to PyPI. You must install it from the source code.
+For development or to get the latest features:
 
 ```bash
 # Clone the repository
@@ -76,14 +89,7 @@ pip install -e ".[anthropic]"
 pip install -e ".[all]"
 ```
 
-**Important Notes:**
-- **Not on PyPI**: This package is not available via `pip install ffmcp`. You must install from source using `pip install -e .` from the project directory.
-- **macOS/Homebrew Python**: On macOS with Homebrew Python, you'll encounter an "externally-managed-environment" error if you try to install system-wide. Always use a virtual environment:
-  ```bash
-  python3 -m venv ~/.venvs/ffmcp  # or any path you prefer
-  source ~/.venvs/ffmcp/bin/activate
-  pip install -e .
-  ```
+**Requirements:**
 - **Python Versions**: Supports Python 3.8 through 3.14.
 - **Node.js Versions**: npm package requires Node.js >= 14.0.0.
 

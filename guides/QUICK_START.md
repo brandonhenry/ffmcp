@@ -2,16 +2,40 @@
 
 ## Installation
 
-**Important:** This package is not published to PyPI. You must install it from source.
+### Option 1: Install via pip (Recommended)
+
+The easiest way to install ffmcp:
 
 ```bash
-# Clone the repository (if you haven't already)
+# Install the base package
+pip install ffmcp
+
+# Or install with specific providers
+pip install ffmcp[openai]
+pip install ffmcp[anthropic]
+pip install ffmcp[all]
+```
+
+**Note:** On macOS with Homebrew Python, you may encounter an "externally-managed-environment" error. Use a virtual environment:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install ffmcp
+```
+
+### Option 2: Install from Source (Development)
+
+For development or to get the latest features:
+
+```bash
+# Clone the repository
 git clone https://github.com/brandonhenry/ffmcp.git
 cd ffmcp
 
-# Create and activate a virtual environment (required on macOS with Homebrew Python)
-python3 -m venv ~/.venvs/ffmcp  # or venv in the project directory
-source ~/.venvs/ffmcp/bin/activate  # or: source venv/bin/activate
+# Create and activate a virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install in development mode
 pip install -e .
@@ -19,8 +43,6 @@ pip install -e .
 # Or install with all providers
 pip install -e ".[all]"
 ```
-
-**Note:** If you get an "externally-managed-environment" error on macOS, make sure you're using a virtual environment (as shown above).
 
 ## Next Steps
 
@@ -227,11 +249,11 @@ ffmcp agent voice set assistant my-voice
 
 ## Troubleshooting
 
-- **"Could not find a version that satisfies the requirement ffmcp"**: This package is not on PyPI. Install from source using `pip install -e .` from the project directory.
+- **"Could not find a version that satisfies the requirement ffmcp"**: Make sure you're using Python 3.8+ and pip is up to date: `pip install --upgrade pip`
 - **"externally-managed-environment" error**: You must use a virtual environment on macOS with Homebrew Python. Create one with `python3 -m venv venv` and activate it.
-- **Command not found**: Make sure the virtual environment is activated
+- **Command not found**: Make sure ffmcp is installed and in your PATH. If using a virtual environment, make sure it's activated.
 - **API key error**: Run `ffmcp config -p openai -k YOUR_KEY`
-- **Import errors**: Make sure you installed with `pip install -e ".[all]"`
+- **Import errors**: Make sure you installed with `pip install ffmcp[all]` or `pip install -e ".[all]"` if installing from source
 
 ## Need Help?
 

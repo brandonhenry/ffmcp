@@ -65,7 +65,7 @@
       },
       "description": "ffmcp is a command-line tool inspired by ffmpeg that provides a unified interface for accessing AI services. Use OpenAI, Anthropic Claude, Google Gemini, Groq, DeepSeek, Mistral, Together AI, Cohere, Perplexity, and more from a single CLI. Features include text generation, vision, image generation, audio transcription, TTS, embeddings, agents, teams, and memory with Zep.",
       "url": "https://ffmcp.org",
-      "downloadUrl": "https://www.npmjs.com/package/ffmcp",
+            "downloadUrl": "https://pypi.org/project/ffmcp/",
       "softwareVersion": "0.1.5",
       "releaseNotes": "Unified CLI for multiple AI providers with agents, teams, memory, and TTS support",
       "author": {
@@ -116,7 +116,7 @@
           "name": "How do I install ffmcp?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "You can install ffmcp via npm: 'npm install -g ffmcp' or via pip: 'pip install ffmcp'. The npm package requires the Python package to be installed separately. See the installation section for detailed instructions."
+            "text": "You can install ffmcp via pip: 'pip install ffmcp' (recommended) or via npm: 'npm install -g ffmcp'. The npm package requires the Python package to be installed separately. See the installation section for detailed instructions."
           }
         },
         {
@@ -208,6 +208,16 @@
                 <h2>Download</h2>
                 <div class="download-options">
                     <div class="download-box">
+                        <h3>Install via pip (Recommended)</h3>
+                        <div class="code-block">
+                            <code>pip install ffmcp</code>
+                        </div>
+                        <p class="note">
+                            <a href="https://pypi.org/project/ffmcp/" target="_blank" style="color: #2a5298; text-decoration: underline;">📦 View on PyPI</a> | Requires Python 3.8 or higher
+                        </p>
+                    </div>
+                    
+                    <div class="download-box">
                         <h3>Install via npm</h3>
                         <div class="code-block">
                             <code>npm install -g ffmcp</code>
@@ -215,14 +225,6 @@
                         <p class="note">
                             <a href="https://www.npmjs.com/package/ffmcp" target="_blank" style="color: #2a5298; text-decoration: underline;">📦 View on npm</a> | Requires Python package installed separately
                         </p>
-                    </div>
-                    
-                    <div class="download-box">
-                        <h3>Install via pip</h3>
-                        <div class="code-block">
-                            <code>pip install ffmcp</code>
-                        </div>
-                        <p class="note">Requires Python 3.8 or higher</p>
                     </div>
                     
                     <div class="download-box">
@@ -310,6 +312,7 @@ ffmcp tts "Hello, world!" output.mp3 --voice my-voice</code>
                 <h2>Resources</h2>
                 <ul class="resource-links">
                     <li><a href="documentation.html">📚 Complete Documentation</a></li>
+                    <li><a href="https://pypi.org/project/ffmcp/" target="_blank">📦 PyPI Package</a></li>
                     <li><a href="https://www.npmjs.com/package/ffmcp" target="_blank">📦 npm Package</a></li>
                     <li><a href="https://github.com/brandonhenry/ffmcp" target="_blank">GitHub Repository</a></li>
                     <li><a href="https://github.com/brandonhenry/ffmcp/issues" target="_blank">Report Issues</a></li>
@@ -356,7 +359,7 @@ ffmcp tts "Hello, world!" output.mp3 --voice my-voice</code>
 
                 <div class="faq-item">
                     <h3>How do I get started with ffmcp?</h3>
-                    <p>1. Install via npm (<code>npm install -g ffmcp</code>) or pip (<code>pip install ffmcp</code>). 2. Configure an API key: <code>ffmcp config -p openai -k YOUR_KEY</code>. 3. Start generating: <code>ffmcp generate "Hello, world!"</code>. See the Quick Start section above for more details.</p>
+                    <p>1. Install via pip (<code>pip install ffmcp</code>) or npm (<code>npm install -g ffmcp</code>). 2. Configure an API key: <code>ffmcp config -p openai -k YOUR_KEY</code>. 3. Start generating: <code>ffmcp generate "Hello, world!"</code>. See the Quick Start section above for more details.</p>
                 </div>
             </section>
 

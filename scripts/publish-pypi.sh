@@ -129,3 +129,4 @@ echo -e "${GREEN}🎉 Successfully published ffmcp@${NEW_VERSION} to PyPI!${NC}"
 echo ""
 echo "View package: https://pypi.org/project/ffmcp/"
 
+

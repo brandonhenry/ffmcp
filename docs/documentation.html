@@ -240,21 +240,32 @@
             <section id="installation" class="command-section">
                 <h2>Installation</h2>
                 
-                <h3>Install via npm (Recommended)</h3>
+                <h3>Install via pip (Recommended)</h3>
+                <div class="command-example">
+<code><span class="prompt">$</span> pip install ffmcp</code>
+                </div>
+                <div class="tip-box">
+                    <strong>📦 PyPI Package:</strong> <a href="https://pypi.org/project/ffmcp/" target="_blank">https://pypi.org/project/ffmcp/</a><br>
+                    <strong>Note:</strong> On macOS with Homebrew Python, you may need to use a virtual environment. See "Install from Source" below for details.
+                </div>
+
+                <h3>Install with Specific Providers</h3>
+                <div class="command-example">
+<code><span class="prompt">$</span> pip install ffmcp[openai]      <span class="comment"># OpenAI only</span>
+<span class="prompt">$</span> pip install ffmcp[anthropic]  <span class="comment"># Anthropic only</span>
+<span class="prompt">$</span> pip install ffmcp[all]         <span class="comment"># All providers</span></code>
+                </div>
+                
+                <h3>Install via npm</h3>
                 <div class="command-example">
 <code><span class="prompt">$</span> npm install -g ffmcp</code>
                 </div>
                 <div class="tip-box">
                     <strong>📦 npm Package:</strong> <a href="https://www.npmjs.com/package/ffmcp" target="_blank">https://www.npmjs.com/package/ffmcp</a><br>
-                    <strong>Note:</strong> The npm package requires the Python package to be installed separately. See "Install from Source" below.
-                </div>
-                
-                <h3>Install via pip</h3>
-                <div class="command-example">
-<code><span class="prompt">$</span> pip install ffmcp</code>
+                    <strong>Note:</strong> The npm package requires the Python package to be installed separately. Install via pip first: <code>pip install ffmcp</code>
                 </div>
 
-                <h3>Install from Source</h3>
+                <h3>Install from Source (Development)</h3>
                 <div class="command-example">
 <code><span class="prompt">$</span> git clone https://github.com/brandonhenry/ffmcp.git
 <span class="prompt">$</span> cd ffmcp
@@ -262,12 +273,8 @@
 <span class="prompt">$</span> source venv/bin/activate  <span class="comment"># On Windows: venv\Scripts\activate</span>
 <span class="prompt">$</span> pip install -e .</code>
                 </div>
-
-                <h3>Install with Specific Providers</h3>
-                <div class="command-example">
-<code><span class="prompt">$</span> pip install -e ".[openai]"      <span class="comment"># OpenAI only</span>
-<span class="prompt">$</span> pip install -e ".[anthropic]"  <span class="comment"># Anthropic only</span>
-<span class="prompt">$</span> pip install -e ".[all]"         <span class="comment"># All providers</span></code>
+                <div class="tip-box">
+                    <strong>For Development:</strong> Use this method if you want to contribute or get the latest features before they're published to PyPI.
                 </div>
             </section>
 
@@ -1402,13 +1409,13 @@ done</code>
                         <dd>Run <code>ffmcp config -p openai -k YOUR_KEY</code> or set environment variable</dd>
 
                         <dt><strong>"Module not found"</strong></dt>
-                        <dd>Install dependencies: <code>pip install -e ".[all]"</code></dd>
+                        <dd>Install dependencies: <code>pip install ffmcp[all]</code> or <code>pip install -e ".[all]"</code> if installing from source</dd>
 
                         <dt><strong>Permission errors</strong></dt>
                         <dd>Ensure virtual environment is activated and you have write permissions</dd>
 
                         <dt><strong>Import errors</strong></dt>
-                        <dd>Make sure you installed with provider extras: <code>pip install -e ".[openai]"</code></dd>
+                        <dd>Make sure you installed with provider extras: <code>pip install ffmcp[openai]</code> or <code>pip install -e ".[openai]"</code> if installing from source</dd>
 
                         <dt><strong>"API key not configured for elevenlabs"</strong></dt>
                         <dd>Run <code>ffmcp config -p elevenlabs -k YOUR_KEY</code> or install package: <code>pip install elevenlabs</code></dd>

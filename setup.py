@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="ffmcp",
-    version="0.1.6",
+    version="0.1.8",
     author="Brandon Henry",
     author_email="itsbhenry@gmail.com",
     description="AI command-line tool inspired by ffmpeg",

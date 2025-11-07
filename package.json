@@ -1,0 +1,53 @@
+{
+  "name": "ffmcp",
+  "version": "0.1.0",
+  "description": "AI command-line tool inspired by ffmpeg. Access any AI service from the command line with a unified interface.",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "bin": {
+    "ffmcp": "./bin/ffmcp.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ai",
+    "artificial-intelligence",
+    "openai",
+    "anthropic",
+    "claude",
+    "gpt",
+    "gemini",
+    "groq",
+    "deepseek",
+    "mistral",
+    "together",
+    "cohere",
+    "perplexity",
+    "cli",
+    "command-line",
+    "ffmpeg",
+    "llm",
+    "language-model"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/ffmcp.git"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "bin/",
+    "NPM_README.md"
+  ]
+}
+

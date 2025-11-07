@@ -1,0 +1,60 @@
+# Files to exclude from npm package
+
+# Python files
+*.py
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Documentation (keep NPM_README.md)
+docs/
+*.md
+!NPM_README.md
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tests
+test/
+tests/
+*.test.js
+*.spec.js
+
+# Examples (keep only if needed)
+examples/
+
+# Config files
+.python-version
+.pylintrc
+setup.py
+requirements.txt
+
+# Netlify
+netlify.toml
+
+# Other
+*.log
+*.tmp
+.cache/
+

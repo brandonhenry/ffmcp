@@ -144,6 +144,7 @@
             <a href="#installation">Installation</a>
             <a href="#quick-start">Quick Start</a>
             <a href="#commands">Commands</a>
+            <a href="#tts-voiceover">TTS</a>
             <a href="#examples">Examples</a>
         </nav>
 
@@ -158,6 +159,7 @@
                     <li><a href="#chat-mode">Chat Mode</a></li>
                     <li><a href="#agents">Agents</a></li>
                     <li><a href="#openai-features">OpenAI Features</a></li>
+                    <li><a href="#tts-voiceover">TTS/Voiceover</a></li>
                     <li><a href="#brains">Brains (Zep Memory)</a></li>
                     <li><a href="#brains-collections">Brains: Collections & Documents</a></li>
                     <li><a href="#real-world-examples">Real-World Examples</a></li>
@@ -510,6 +512,241 @@ EOF
                 </div>
             </section>
 
+            <section id="tts-voiceover" class="command-section">
+                <h2>🎙️ TTS/Voiceover</h2>
+
+                <p>ffmcp includes comprehensive text-to-speech (TTS) functionality supporting multiple providers including ElevenLabs and FishAudio. You can create voice configurations, discover voices, and generate speech from text.</p>
+
+                <h3>Quick Start</h3>
+                <div class="command-example">
+<code><span class="comment"># 1. Configure API key</span>
+<span class="prompt">$</span> ffmcp config -p elevenlabs -k YOUR_ELEVENLABS_API_KEY
+
+<span class="comment"># 2. Discover available voices</span>
+<span class="prompt">$</span> ffmcp voiceover provider list --provider elevenlabs
+
+<span class="comment"># 3. Create a voice configuration</span>
+<span class="prompt">$</span> ffmcp voiceover create my-voice \
+  --provider elevenlabs \
+  --voice-id 21m00Tcm4TlvDq8ikWAM \
+  --description "My favorite voice"
+
+<span class="comment"># 4. Generate speech</span>
+<span class="prompt">$</span> ffmcp tts "Hello, world!" output.mp3 --voice my-voice</code>
+                </div>
+
+                <h3>Voice Configuration Management</h3>
+
+                <h4>Create Voice Configuration</h4>
+                <div class="command-example">
+<code><span class="comment"># Basic configuration</span>
+<span class="prompt">$</span> ffmcp voiceover create narrator \
+  --provider elevenlabs \
+  --voice-id 21m00Tcm4TlvDq8ikWAM
+
+<span class="comment"># With all settings (ElevenLabs)</span>
+<span class="prompt">$</span> ffmcp voiceover create narrator \
+  --provider elevenlabs \
+  --voice-id pNInz6obpgDQGcFmaJgB \
+  --model-id eleven_multilingual_v2 \
+  --stability 0.5 \
+  --similarity-boost 0.75 \
+  --style 0.0 \
+  --use-speaker-boost \
+  --output-format mp3_44100_128 \
+  --description "Narrator voice for stories"
+
+<span class="comment"># FishAudio with reference audio (voice cloning)</span>
+<span class="prompt">$</span> ffmcp voiceover create cloned-voice \
+  --provider fishaudio \
+  --reference-audio /path/to/reference.wav \
+  --reference-text "This is a sample of the voice I want to clone" \
+  --format wav \
+  --prosody-speed 1.0 \
+  --description "Cloned voice from audio"</code>
+                </div>
+
+                <h4>List and Manage Voices</h4>
+                <div class="command-example">
+<code><span class="comment"># List all saved voices</span>
+<span class="prompt">$</span> ffmcp voiceover list
+
+<span class="comment"># Show voice details</span>
+<span class="prompt">$</span> ffmcp voiceover show my-voice
+
+<span class="comment"># Update voice settings</span>
+<span class="prompt">$</span> ffmcp voiceover update my-voice --stability 0.6 --similarity-boost 0.8
+
+<span class="comment"># Delete voice</span>
+<span class="prompt">$</span> ffmcp voiceover delete my-voice</code>
+                </div>
+
+                <h3>Provider Voice Discovery</h3>
+                <div class="command-example">
+<code><span class="comment"># List all voices from a provider</span>
+<span class="prompt">$</span> ffmcp voiceover provider list --provider elevenlabs
+<span class="prompt">$</span> ffmcp voiceover provider list --provider fishaudio
+
+<span class="comment"># Show details of a specific voice</span>
+<span class="prompt">$</span> ffmcp voiceover provider show --provider elevenlabs 21m00Tcm4TlvDq8ikWAM</code>
+                </div>
+
+                <h3>Text-to-Speech Generation</h3>
+
+                <h4>Using Saved Voice Configuration</h4>
+                <div class="command-example">
+<code><span class="comment"># Simple usage with saved voice</span>
+<span class="prompt">$</span> ffmcp tts "Hello, this is a test" output.mp3 --voice my-voice
+
+<span class="comment"># Override specific settings</span>
+<span class="prompt">$</span> ffmcp tts "Custom settings test" output.mp3 \
+  --voice my-voice \
+  --stability 0.7 \
+  --similarity-boost 0.9</code>
+                </div>
+
+                <h4>Using Provider Directly</h4>
+                <div class="command-example">
+<code><span class="comment"># ElevenLabs direct usage</span>
+<span class="prompt">$</span> ffmcp tts "Direct voice usage" output.mp3 \
+  --provider elevenlabs \
+  --voice-id 21m00Tcm4TlvDq8ikWAM \
+  --model-id eleven_multilingual_v2 \
+  --stability 0.5 \
+  --similarity-boost 0.75 \
+  --style 0.0 \
+  --use-speaker-boost \
+  --output-format mp3_44100_128
+
+<span class="comment"># FishAudio with reference ID</span>
+<span class="prompt">$</span> ffmcp tts "Hello from FishAudio" output.mp3 \
+  --provider fishaudio \
+  --reference-id my-model-id \
+  --format mp3
+
+<span class="comment"># FishAudio with reference audio (one-time cloning)</span>
+<span class="prompt">$</span> ffmcp tts "This will sound like the reference" output.mp3 \
+  --provider fishaudio \
+  --reference-audio /path/to/reference.wav \
+  --reference-text "Reference text" \
+  --format wav \
+  --prosody-speed 1.2</code>
+                </div>
+
+                <h3>Voice Parameters Explained</h3>
+                <div class="option-list">
+                    <dl>
+                        <dt><strong>Stability (0.0-1.0)</strong></dt>
+                        <dd>Lower values (0.0-0.3): More variation, expressive. Higher values (0.7-1.0): More consistent, stable. Default: 0.5</dd>
+
+                        <dt><strong>Similarity Boost (0.0-1.0)</strong></dt>
+                        <dd>How similar to the original voice. Higher = more similar. Default: 0.75</dd>
+
+                        <dt><strong>Style (0.0-1.0)</strong></dt>
+                        <dd>Style exaggeration. Lower = neutral, Higher = expressive. Default: 0.0</dd>
+
+                        <dt><strong>Speaker Boost</strong></dt>
+                        <dd>Enhances clarity and intelligibility. Enabled by default.</dd>
+
+                        <dt><strong>Output Formats (ElevenLabs)</strong></dt>
+                        <dd><code>mp3_44100_128</code> (default), <code>mp3_44100_192</code>, <code>pcm_16000</code>, <code>pcm_22050</code>, <code>pcm_24000</code>, <code>pcm_44100</code></dd>
+
+                        <dt><strong>Output Formats (FishAudio)</strong></dt>
+                        <dd><code>mp3</code>, <code>wav</code>, <code>pcm</code>, <code>opus</code></dd>
+
+                        <dt><strong>Prosody (FishAudio)</strong></dt>
+                        <dd>Control speech speed (<code>--prosody-speed</code>) and volume (<code>--prosody-volume</code>)</dd>
+                    </dl>
+                </div>
+
+                <h3>Agent Voice Integration</h3>
+                <div class="command-example">
+<code><span class="comment"># Create agent with voice</span>
+<span class="prompt">$</span> ffmcp agent create assistant \
+  -p openai \
+  -m gpt-4o-mini \
+  -i "You are a helpful assistant" \
+  --voice my-voice
+
+<span class="comment"># Set voice for existing agent</span>
+<span class="prompt">$</span> ffmcp agent voice set assistant my-voice
+
+<span class="comment"># Show agent's voice</span>
+<span class="prompt">$</span> ffmcp agent voice show assistant
+
+<span class="comment"># Remove voice from agent</span>
+<span class="prompt">$</span> ffmcp agent voice remove assistant</code>
+                </div>
+
+                <h3>Supported Providers</h3>
+
+                <h4>ElevenLabs</h4>
+                <div class="tip-box">
+                    <strong>Setup:</strong>
+                    <div class="command-example" style="margin-top:1rem;">
+<code><span class="prompt">$</span> pip install elevenlabs
+<span class="prompt">$</span> ffmcp config -p elevenlabs -k YOUR_ELEVENLABS_API_KEY</code>
+                    </div>
+                    <p style="margin:0.5rem 0 0 0;">Get API key from <a href="https://elevenlabs.io" target="_blank">elevenlabs.io</a></p>
+                </div>
+
+                <h4>FishAudio</h4>
+                <div class="tip-box">
+                    <strong>Setup:</strong>
+                    <div class="command-example" style="margin-top:1rem;">
+<code><span class="prompt">$</span> pip install fish-audio-sdk
+<span class="prompt">$</span> ffmcp config -p fishaudio -k YOUR_FISHAUDIO_API_KEY</code>
+                    </div>
+                    <p style="margin:0.5rem 0 0 0;">FishAudio supports voice cloning with reference audio files</p>
+                </div>
+
+                <h3>Advanced Usage</h3>
+
+                <h4>Batch TTS Generation</h4>
+                <div class="command-example">
+<code><span class="comment"># Generate multiple files</span>
+<span class="prompt">$</span> for text in "Hello" "World" "Test"; do
+    ffmcp tts "$text" "${text}.mp3" --voice my-voice
+done
+
+<span class="comment"># Process text file line by line</span>
+<span class="prompt">$</span> counter=1
+<span class="prompt">$</span> while IFS= read -r line; do
+    ffmcp tts "$line" "output_${counter}.mp3" --voice my-voice
+    counter=$((counter + 1))
+done < input.txt</code>
+                </div>
+
+                <h4>Voice Settings Experimentation</h4>
+                <div class="command-example">
+<code><span class="comment"># Test different stability settings</span>
+<span class="prompt">$</span> for stability in 0.3 0.5 0.7 0.9; do
+    ffmcp tts "Stability test: $stability" "stability_${stability}.mp3" \
+      --voice my-voice \
+      --stability $stability
+done</code>
+                </div>
+
+                <h4>Integration with Agent Responses</h4>
+                <div class="command-example">
+<code><span class="comment"># Get agent response and convert to speech</span>
+<span class="prompt">$</span> response=$(ffmcp agent run "Explain quantum computing" --agent assistant)
+<span class="prompt">$</span> ffmcp tts "$response" response.mp3 --voice assistant-voice</code>
+                </div>
+
+                <div class="tip-box">
+                    <strong>💡 Tips:</strong>
+                    <ul>
+                        <li>Use higher stability (0.7-0.9) for consistent narration</li>
+                        <li>Use lower stability (0.3-0.5) with higher style (0.2-0.4) for expressive characters</li>
+                        <li>For FishAudio voice cloning, use high-quality reference audio (16kHz+, 3-5 seconds minimum)</li>
+                        <li>Create named voice configurations for common use cases</li>
+                        <li>Use <code>eleven_turbo_v2</code> model for faster generation</li>
+                        <li>Use <code>mp3_44100_192</code> or PCM formats for highest quality</li>
+                    </ul>
+                </div>
+            </section>
+
             <section id="brains" class="command-section">
                 <h2>Brains (Zep Memory)</h2>
 
@@ -665,6 +902,37 @@ RESULT=$(ffmcp generate "Translate to French: Hello world" -p openai)
 echo "Translation: $RESULT"</code>
                     </div>
                 </div>
+
+                <div class="workflow-box">
+                    <h3>Example 8: Agent Response to Speech</h3>
+                    <div class="command-example">
+<code><span class="comment"># 1. Create voice configuration</span>
+<span class="prompt">$</span> ffmcp voiceover create assistant-voice \
+  --provider elevenlabs \
+  --voice-id pNInz6obpgDQGcFmaJgB \
+  --stability 0.6
+
+<span class="comment"># 2. Create agent with voice</span>
+<span class="prompt">$</span> ffmcp agent create assistant \
+  -p openai -m gpt-4o-mini \
+  -i "You are a helpful assistant" \
+  --voice assistant-voice
+
+<span class="comment"># 3. Get agent response and convert to speech</span>
+<span class="prompt">$</span> response=$(ffmcp agent run "Explain quantum computing" --agent assistant)
+<span class="prompt">$</span> ffmcp tts "$response" response.mp3 --voice assistant-voice</code>
+                    </div>
+                </div>
+
+                <div class="workflow-box">
+                    <h3>Example 9: Batch TTS Generation</h3>
+                    <div class="command-example">
+<code><span class="comment"># Generate audio for multiple text files</span>
+<span class="prompt">$</span> for file in *.txt; do
+    ffmcp tts "$(cat $file)" "${file%.txt}.mp3" --voice narrator
+done</code>
+                    </div>
+                </div>
             </section>
 
             <section id="options-reference" class="command-section">
@@ -775,6 +1043,47 @@ echo "Translation: $RESULT"</code>
                         <dd>Path to JSON file containing tool definitions</dd>
                     </dl>
                 </div>
+
+                <h3>TTS/Voiceover Options</h3>
+                <div class="option-list">
+                    <dl>
+                        <dt><code>--voice my-voice</code></dt>
+                        <dd>Use saved voice configuration</dd>
+
+                        <dt><code>--provider elevenlabs</code></dt>
+                        <dd>TTS provider (elevenlabs, fishaudio)</dd>
+
+                        <dt><code>--voice-id ID</code></dt>
+                        <dd>Voice ID from provider (ElevenLabs)</dd>
+
+                        <dt><code>--reference-id ID</code></dt>
+                        <dd>Reference/voice model ID (FishAudio)</dd>
+
+                        <dt><code>--reference-audio FILE</code></dt>
+                        <dd>Path to reference audio file for voice cloning (FishAudio)</dd>
+
+                        <dt><code>--stability 0.5</code></dt>
+                        <dd>Voice stability (0.0-1.0, ElevenLabs)</dd>
+
+                        <dt><code>--similarity-boost 0.75</code></dt>
+                        <dd>Similarity to original voice (0.0-1.0, ElevenLabs)</dd>
+
+                        <dt><code>--style 0.0</code></dt>
+                        <dd>Style exaggeration (0.0-1.0, ElevenLabs)</dd>
+
+                        <dt><code>--output-format mp3_44100_128</code></dt>
+                        <dd>Audio output format (ElevenLabs)</dd>
+
+                        <dt><code>--format mp3</code></dt>
+                        <dd>Output format: mp3, wav, pcm, opus (FishAudio)</dd>
+
+                        <dt><code>--prosody-speed 1.0</code></dt>
+                        <dd>Speech speed multiplier (FishAudio)</dd>
+
+                        <dt><code>--prosody-volume 0</code></dt>
+                        <dd>Volume adjustment (FishAudio)</dd>
+                    </dl>
+                </div>
             </section>
 
             <section id="troubleshooting" class="command-section">
@@ -797,6 +1106,15 @@ echo "Translation: $RESULT"</code>
 
                         <dt><strong>Import errors</strong></dt>
                         <dd>Make sure you installed with provider extras: <code>pip install -e ".[openai]"</code></dd>
+
+                        <dt><strong>"API key not configured for elevenlabs"</strong></dt>
+                        <dd>Run <code>ffmcp config -p elevenlabs -k YOUR_KEY</code> or install package: <code>pip install elevenlabs</code></dd>
+
+                        <dt><strong>"Unknown voice: my-voice"</strong></dt>
+                        <dd>Check voice exists: <code>ffmcp voiceover list</code> or create it with <code>ffmcp voiceover create</code></dd>
+
+                        <dt><strong>"Reference audio file not found" (FishAudio)</strong></dt>
+                        <dd>Ensure reference audio file path is correct and file exists. Use high-quality audio (WAV, MP3, FLAC)</dd>
                     </dl>
                 </div>
 

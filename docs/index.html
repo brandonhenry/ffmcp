@@ -51,6 +51,7 @@
                     <li>🔧 <strong>Configurable</strong> - Manage API keys and settings easily</li>
                     <li>📊 <strong>Streaming</strong> - Real-time streaming support for responses</li>
                     <li>🎨 <strong>Full OpenAI Support</strong> - Vision, images, audio, embeddings, and assistants</li>
+                    <li>🎙️ <strong>TTS/Voiceover</strong> - Text-to-speech with ElevenLabs and FishAudio, voice cloning, voice configurations</li>
                     <li>🧠 <strong>Brains (Zep Memory)</strong> - Create brains, chat memory, collections, graph</li>
                     <li>🤖 <strong>Agents</strong> - Named agents with model, instructions, brain, properties, and actions (web, images, vision, embeddings)</li>
                 </ul>
@@ -126,6 +127,14 @@ ffmcp brain memory get</code>
                         <code>ffmcp agent create myagent -p openai -m gpt-4o-mini -i "You are a helpful assistant" --brain mybrain<br>
 ffmcp agent use myagent<br>
 ffmcp agent run "Plan a 3-day trip to Paris"</code>
+                    </div>
+                </div>
+
+                <div class="example-box">
+                    <h3>Text-to-Speech</h3>
+                    <div class="code-block">
+                        <code>ffmcp voiceover create my-voice --provider elevenlabs --voice-id 21m00Tcm4TlvDq8ikWAM<br>
+ffmcp tts "Hello, world!" output.mp3 --voice my-voice</code>
                     </div>
                 </div>
             </section>

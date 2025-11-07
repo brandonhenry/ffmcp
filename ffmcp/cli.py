@@ -11,6 +11,7 @@ from ffmcp.providers import get_provider
 from ffmcp.config import Config
 from ffmcp.brain import ZepBrainClient, BrainInfo, ZepSDKNotInstalledError
 from ffmcp.agents import Agent
+from ffmcp.voiceover import get_tts_provider
 
 # Ensure UTF-8 encoding for stdin/stdout as early as possible
 # Environment hint for Python and downstream libs
@@ -84,7 +85,7 @@ def cli():
 
 @cli.command()
 @click.argument('prompt', required=False)
-@click.option('--provider', '-p', default='openai', help='AI provider to use (openai, anthropic, gemini, groq, deepseek, mistral, together, cohere, perplexity)')
+@click.option('--provider', '-p', default='openai', help='AI provider to use (openai, anthropic, gemini, groq, deepseek, mistral, together, cohere, perplexity, ai33)')
 @click.option('--model', '-m', help='Model to use (overrides default)')
 @click.option('--temperature', '-t', type=float, help='Temperature for generation')
 @click.option('--max-tokens', type=int, help='Maximum tokens to generate')
@@ -180,7 +181,7 @@ def generate(prompt: Optional[str], provider: str, model: Optional[str],
 
 @cli.command()
 @click.argument('prompt')
-@click.option('--provider', '-p', default='openai', help='AI provider to use (openai, anthropic, gemini, groq, deepseek, mistral, together, cohere, perplexity)')
+@click.option('--provider', '-p', default='openai', help='AI provider to use (openai, anthropic, gemini, groq, deepseek, mistral, together, cohere, perplexity, ai33)')
 @click.option('--model', '-m', help='Model to use')
 @click.option('--system', '-s', help='System message')
 @click.option('--thread', '-t', help='Thread name (maintains conversation history). If not specified, uses active thread if available.')
@@ -1108,18 +1109,19 @@ def agent():
 
 @agent.command('create')
 @click.argument('name')
-@click.option('--provider', '-p', default='openai', type=click.Choice(['openai', 'anthropic', 'gemini', 'groq', 'deepseek', 'mistral', 'together', 'cohere', 'perplexity']), help='Provider name')
+@click.option('--provider', '-p', default='openai', type=click.Choice(['openai', 'anthropic', 'gemini', 'groq', 'deepseek', 'mistral', 'together', 'cohere', 'perplexity', 'ai33']), help='Provider name')
 @click.option('--model', '-m', required=True, help='Default model for this agent')
 @click.option('--instructions', '-i', help='System prompt instructions (inline text)')
 @click.option('--instructions-file', '-f', type=click.File('r', encoding='utf-8'), help='Read instructions from file')
 @click.option('--brain', help='Optional brain name for memory/search')
+@click.option('--voice', '-v', help='Voice name to use for TTS')
 @click.option('--prop', 'props', multiple=True, help='Set property key=value (repeatable)')
 @click.option('--web/--no-web', default=True, help='Enable web_fetch action')
 @click.option('--image-gen/--no-image-gen', default=True, help='Enable generate_image action')
 @click.option('--vision-urls/--no-vision-urls', default=True, help='Enable analyze_image_urls action')
 @click.option('--embeddings/--no-embeddings', default=True, help='Enable create_embedding action')
 @click.option('--brain-search/--no-brain-search', default=True, help='Enable brain_document_search action')
-def agent_create(name: str, provider: str, model: str, instructions: Optional[str], instructions_file: Optional, brain: Optional[str], props: tuple,
+def agent_create(name: str, provider: str, model: str, instructions: Optional[str], instructions_file: Optional, brain: Optional[str], voice: Optional[str], props: tuple,
                  web: bool, image_gen: bool, vision_urls: bool, embeddings: bool, brain_search: bool):
     """Create a new agent and set it active."""
     config = Config()
@@ -1155,6 +1157,7 @@ def agent_create(name: str, provider: str, model: str, instructions: Optional[st
             brain=brain,
             properties=properties,
             actions=actions,
+            voice=voice,
         )
         click.echo(f"Agent created: {name}")
     except Exception as e:
@@ -1446,6 +1449,325 @@ def agent_run(prompt: Optional[str], agent_name: Optional[str], thread_name: Opt
         )
         result = ag.run(input_text=prompt, images=list(images) if images else None, thread_name=thread_name)
         click.echo(result)
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+# ========== Voiceover/TTS commands ==========
+
+@cli.group()
+def voiceover():
+    """Manage voiceover/TTS configurations and providers."""
+    pass
+
+
+@voiceover.command('create')
+@click.argument('name')
+@click.option('--provider', '-p', required=True, help='TTS provider (elevenlabs)')
+@click.option('--voice-id', required=True, help='Voice ID from provider')
+@click.option('--model-id', help='Model ID (e.g., eleven_multilingual_v2)')
+@click.option('--stability', type=float, help='Stability (0.0-1.0)')
+@click.option('--similarity-boost', type=float, help='Similarity boost (0.0-1.0)')
+@click.option('--style', type=float, help='Style (0.0-1.0)')
+@click.option('--use-speaker-boost/--no-speaker-boost', default=True, help='Use speaker boost')
+@click.option('--output-format', help='Output format (e.g., mp3_44100_128)')
+@click.option('--description', help='Description for this voice')
+def voiceover_create(name: str, provider: str, voice_id: str, model_id: Optional[str],
+                     stability: Optional[float], similarity_boost: Optional[float],
+                     style: Optional[float], use_speaker_boost: bool,
+                     output_format: Optional[str], description: Optional[str]):
+    """Create a new voiceover configuration."""
+    config = Config()
+    try:
+        config.create_voice(
+            name=name,
+            provider=provider,
+            voice_id=voice_id,
+            model_id=model_id,
+            stability=stability,
+            similarity_boost=similarity_boost,
+            style=style,
+            use_speaker_boost=use_speaker_boost,
+            output_format=output_format,
+            description=description,
+        )
+        click.echo(f"Voice created: {name}")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@voiceover.command('list')
+def voiceover_list():
+    """List all voiceover configurations."""
+    config = Config()
+    try:
+        voices = config.list_voices()
+        if not voices:
+            click.echo("No voices configured")
+            return
+        for voice in voices:
+            provider = voice.get('provider', 'unknown')
+            voice_id = voice.get('voice_id', 'unknown')
+            desc = voice.get('description', '')
+            desc_str = f" - {desc}" if desc else ""
+            click.echo(f"{voice['name']} ({provider}:{voice_id}){desc_str}")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@voiceover.command('show')
+@click.argument('name')
+def voiceover_show(name: str):
+    """Show details of a voiceover configuration."""
+    config = Config()
+    try:
+        voice = config.get_voice(name)
+        if not voice:
+            click.echo(f"Error: Unknown voice '{name}'", err=True)
+            sys.exit(1)
+        click.echo(json.dumps({"name": name, **voice}, indent=2))
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@voiceover.command('update')
+@click.argument('name')
+@click.option('--voice-id', help='Update voice ID')
+@click.option('--model-id', help='Update model ID')
+@click.option('--stability', type=float, help='Update stability')
+@click.option('--similarity-boost', type=float, help='Update similarity boost')
+@click.option('--style', type=float, help='Update style')
+@click.option('--use-speaker-boost/--no-speaker-boost', default=None, help='Update speaker boost')
+@click.option('--output-format', help='Update output format')
+@click.option('--description', help='Update description')
+def voiceover_update(name: str, voice_id: Optional[str], model_id: Optional[str],
+                     stability: Optional[float], similarity_boost: Optional[float],
+                     style: Optional[float], use_speaker_boost: Optional[bool],
+                     output_format: Optional[str], description: Optional[str]):
+    """Update a voiceover configuration."""
+    config = Config()
+    try:
+        updates = {}
+        if voice_id is not None:
+            updates['voice_id'] = voice_id
+        if model_id is not None:
+            updates['model_id'] = model_id
+        if stability is not None:
+            updates['stability'] = stability
+        if similarity_boost is not None:
+            updates['similarity_boost'] = similarity_boost
+        if style is not None:
+            updates['style'] = style
+        if use_speaker_boost is not None:
+            updates['use_speaker_boost'] = use_speaker_boost
+        if output_format is not None:
+            updates['output_format'] = output_format
+        if description is not None:
+            updates['description'] = description
+        
+        if not updates:
+            click.echo("Error: No updates provided", err=True)
+            sys.exit(1)
+        
+        config.update_voice(name, updates)
+        click.echo(f"Voice updated: {name}")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@voiceover.command('delete')
+@click.argument('name')
+def voiceover_delete(name: str):
+    """Delete a voiceover configuration."""
+    config = Config()
+    try:
+        config.delete_voice(name)
+        click.echo(f"Voice deleted: {name}")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@voiceover.group()
+def provider():
+    """Manage TTS provider voices."""
+    pass
+
+
+@provider.command('list')
+@click.option('--provider', '-p', required=True, help='TTS provider (elevenlabs)')
+def provider_list(provider: str):
+    """List available voices from a TTS provider."""
+    config = Config()
+    try:
+        tts_provider = get_tts_provider(provider, config)
+        voices = tts_provider.list_voices()
+        if not voices:
+            click.echo(f"No voices found for provider '{provider}'")
+            return
+        for voice in voices:
+            voice_id = voice.get('id', 'unknown')
+            voice_name = voice.get('name', 'unknown')
+            category = voice.get('category', '')
+            desc = voice.get('description', '')
+            cat_str = f" [{category}]" if category else ""
+            desc_str = f" - {desc}" if desc else ""
+            click.echo(f"{voice_id}: {voice_name}{cat_str}{desc_str}")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@provider.command('show')
+@click.option('--provider', '-p', required=True, help='TTS provider (elevenlabs)')
+@click.argument('voice_id')
+def provider_show(provider: str, voice_id: str):
+    """Show details of a provider voice."""
+    config = Config()
+    try:
+        tts_provider = get_tts_provider(provider, config)
+        voice = tts_provider.get_voice(voice_id)
+        if not voice:
+            click.echo(f"Error: Voice '{voice_id}' not found", err=True)
+            sys.exit(1)
+        click.echo(json.dumps(voice, indent=2))
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@cli.command('tts')
+@click.argument('text')
+@click.argument('output_file', type=click.Path())
+@click.option('--voice', '-v', help='Voice configuration name (from voiceover list)')
+@click.option('--provider', '-p', help='TTS provider (elevenlabs)')
+@click.option('--voice-id', help='Voice ID (if not using saved voice)')
+@click.option('--model-id', help='Model ID')
+@click.option('--stability', type=float, help='Stability (0.0-1.0)')
+@click.option('--similarity-boost', type=float, help='Similarity boost (0.0-1.0)')
+@click.option('--style', type=float, help='Style (0.0-1.0)')
+@click.option('--use-speaker-boost/--no-speaker-boost', default=True, help='Use speaker boost')
+@click.option('--output-format', help='Output format')
+def tts(text: str, output_file: str, voice: Optional[str], provider: Optional[str],
+        voice_id: Optional[str], model_id: Optional[str], stability: Optional[float],
+        similarity_boost: Optional[float], style: Optional[float], use_speaker_boost: bool,
+        output_format: Optional[str]):
+    """Convert text to speech."""
+    config = Config()
+    try:
+        # Determine provider and voice_id
+        if voice:
+            # Use saved voice configuration
+            voice_config = config.get_voice(voice)
+            if not voice_config:
+                click.echo(f"Error: Unknown voice '{voice}'", err=True)
+                sys.exit(1)
+            provider = voice_config.get('provider')
+            voice_id = voice_config.get('voice_id')
+            # Use saved settings as defaults, but allow overrides
+            if model_id is None:
+                model_id = voice_config.get('model_id')
+            if stability is None:
+                stability = voice_config.get('stability')
+            if similarity_boost is None:
+                similarity_boost = voice_config.get('similarity_boost')
+            if style is None:
+                style = voice_config.get('style')
+            if use_speaker_boost is None:
+                use_speaker_boost = voice_config.get('use_speaker_boost', True)
+            if output_format is None:
+                output_format = voice_config.get('output_format')
+        elif provider and voice_id:
+            # Use direct provider/voice_id
+            pass
+        else:
+            click.echo("Error: Provide --voice or both --provider and --voice-id", err=True)
+            sys.exit(1)
+        
+        if not provider or not voice_id:
+            click.echo("Error: Provider and voice_id are required", err=True)
+            sys.exit(1)
+        
+        tts_provider = get_tts_provider(provider, config)
+        result = tts_provider.text_to_speech(
+            text=text,
+            output_path=output_file,
+            voice_id=voice_id,
+            model_id=model_id,
+            stability=stability,
+            similarity_boost=similarity_boost,
+            style=style,
+            use_speaker_boost=use_speaker_boost,
+            output_format=output_format,
+        )
+        click.echo(f"Audio saved to: {result}")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+# ========== Agent voice commands ==========
+
+@agent.group('voice')
+def agent_voice():
+    """Manage agent voices."""
+    pass
+
+
+@agent_voice.command('set')
+@click.argument('agent_name')
+@click.argument('voice_name')
+def agent_voice_set(agent_name: str, voice_name: str):
+    """Set voice for an agent."""
+    config = Config()
+    try:
+        config.set_agent_voice(agent_name, voice_name)
+        click.echo(f"Voice '{voice_name}' set for agent '{agent_name}'")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@agent_voice.command('remove')
+@click.argument('agent_name')
+def agent_voice_remove(agent_name: str):
+    """Remove voice from an agent."""
+    config = Config()
+    try:
+        config.set_agent_voice(agent_name, None)
+        click.echo(f"Voice removed from agent '{agent_name}'")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@agent_voice.command('show')
+@click.argument('agent_name')
+def agent_voice_show(agent_name: str):
+    """Show voice for an agent."""
+    config = Config()
+    try:
+        voice_name = config.get_agent_voice(agent_name)
+        if voice_name:
+            click.echo(voice_name)
+        else:
+            click.echo(f"No voice set for agent '{agent_name}'")
     except Exception as e:
         error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
         click.echo(f"Error: {error_msg}", err=True)

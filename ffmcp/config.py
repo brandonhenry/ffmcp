@@ -251,12 +251,20 @@ class Config:
         brain: Optional[str] = None,
         properties: Optional[dict] = None,
         actions: Optional[dict] = None,
+        voice: Optional[str] = None,
     ) -> dict:
         if not name or not name.strip():
             raise ValueError('agent name is required')
         agents = self._config.setdefault('agents', {})
         if name in agents:
             raise ValueError(f'agent already exists: {name}')
+        
+        # Validate voice if provided
+        if voice:
+            voices = self._config.get('voices', {})
+            if voice not in voices:
+                raise ValueError(f'unknown voice: {voice}')
+        
         agent_def = {
             'provider': provider,
             'model': model,
@@ -264,6 +272,7 @@ class Config:
             'brain': brain,
             'properties': properties or {},
             'actions': actions or {},
+            'voice': voice,
         }
         agents[name] = agent_def
         self._config['active_agent'] = name
@@ -308,6 +317,28 @@ class Config:
         props = agents[name].setdefault('properties', {})
         props[key] = value
         self._save_config()
+    
+    def set_agent_voice(self, name: str, voice_name: Optional[str]):
+        """Set or remove voice for an agent"""
+        agents = self._config.setdefault('agents', {})
+        if name not in agents:
+            raise ValueError(f'unknown agent: {name}')
+        
+        if voice_name:
+            # Validate voice exists
+            voices = self._config.get('voices', {})
+            if voice_name not in voices:
+                raise ValueError(f'unknown voice: {voice_name}')
+        
+        agents[name]['voice'] = voice_name
+        self._save_config()
+    
+    def get_agent_voice(self, name: str) -> Optional[str]:
+        """Get voice name for an agent"""
+        agents = self._config.get('agents', {})
+        if name not in agents:
+            raise ValueError(f'unknown agent: {name}')
+        return agents[name].get('voice')
 
     def remove_agent_property(self, name: str, key: str):
         agents = self._config.setdefault('agents', {})
@@ -598,4 +629,128 @@ class Config:
             {'role': msg.get('role'), 'content': msg.get('content', '')}
             for msg in messages
         ]
+
+    # ---------------- Voiceover/Voice management ----------------
+    def list_voices(self) -> List[Dict[str, Any]]:
+        """List all saved voice configurations"""
+        voices = self._config.get('voices', {})
+        return [
+            {
+                'name': name,
+                **({} if not isinstance(v, dict) else v)
+            }
+            for name, v in voices.items()
+        ]
+
+    def get_voice(self, name: str) -> Optional[Dict[str, Any]]:
+        """Get a voice configuration by name"""
+        voices = self._config.get('voices', {})
+        return voices.get(name)
+
+    def create_voice(
+        self,
+        name: str,
+        provider: str,
+        voice_id: Optional[str] = None,
+        model_id: Optional[str] = None,
+        stability: Optional[float] = None,
+        similarity_boost: Optional[float] = None,
+        style: Optional[float] = None,
+        use_speaker_boost: Optional[bool] = None,
+        output_format: Optional[str] = None,
+        description: Optional[str] = None,
+        # FishAudio-specific parameters
+        reference_id: Optional[str] = None,
+        reference_audio: Optional[str] = None,
+        reference_text: Optional[str] = None,
+        format: Optional[str] = None,
+        prosody: Optional[dict] = None,
+    ) -> Dict[str, Any]:
+        """Create a new voice configuration"""
+        if not name or not name.strip():
+            raise ValueError('voice name is required')
+        if not provider or not provider.strip():
+            raise ValueError('provider is required')
+        
+        # For providers that require voice_id (like ElevenLabs), validate it
+        if provider == 'elevenlabs' and (not voice_id or not voice_id.strip()):
+            raise ValueError('voice_id is required for elevenlabs provider')
+        
+        # For FishAudio, either voice_id/reference_id or reference_audio is needed
+        if provider == 'fishaudio' and not voice_id and not reference_id and not reference_audio:
+            raise ValueError('voice_id, reference_id, or reference_audio is required for fishaudio provider')
+        
+        voices = self._config.setdefault('voices', {})
+        if name in voices:
+            raise ValueError(f'voice already exists: {name}')
+        
+        voice_config = {
+            'provider': provider,
+        }
+        
+        # Add voice_id if provided
+        if voice_id:
+            voice_config['voice_id'] = voice_id
+        
+        # Add optional parameters (ElevenLabs)
+        if model_id is not None:
+            voice_config['model_id'] = model_id
+        if stability is not None:
+            voice_config['stability'] = stability
+        if similarity_boost is not None:
+            voice_config['similarity_boost'] = similarity_boost
+        if style is not None:
+            voice_config['style'] = style
+        if use_speaker_boost is not None:
+            voice_config['use_speaker_boost'] = use_speaker_boost
+        if output_format is not None:
+            voice_config['output_format'] = output_format
+        if description is not None:
+            voice_config['description'] = description
+        
+        # Add FishAudio-specific parameters
+        if reference_id is not None:
+            voice_config['reference_id'] = reference_id
+        if reference_audio is not None:
+            voice_config['reference_audio'] = reference_audio
+        if reference_text is not None:
+            voice_config['reference_text'] = reference_text
+        if format is not None:
+            voice_config['format'] = format
+        if prosody is not None:
+            voice_config['prosody'] = prosody
+        
+        voices[name] = voice_config
+        self._save_config()
+        return voice_config
+
+    def update_voice(self, name: str, updates: Dict[str, Any]) -> Dict[str, Any]:
+        """Update a voice configuration"""
+        voices = self._config.setdefault('voices', {})
+        if name not in voices:
+            raise ValueError(f'unknown voice: {name}')
+        
+        current = voices[name]
+        # Update only provided fields
+        for key, value in updates.items():
+            if value is not None:
+                current[key] = value
+        
+        voices[name] = current
+        self._save_config()
+        return current
+
+    def delete_voice(self, name: str):
+        """Delete a voice configuration"""
+        voices = self._config.get('voices', {})
+        if name in voices:
+            del voices[name]
+            # Also remove from any agents that use this voice
+            agents = self._config.get('agents', {})
+            for agent_name, agent_data in agents.items():
+                if isinstance(agent_data, dict) and agent_data.get('voice') == name:
+                    agent_data['voice'] = None
+            self._save_config()
+        else:
+            raise ValueError(f'unknown voice: {name}')
 

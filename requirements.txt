@@ -9,4 +9,6 @@ mistralai>=1.0.0
 together>=1.0.0
 cohere>=4.0.0
 httpx>=0.24.0
+elevenlabs>=1.0.0
+fish-audio-sdk>=1.0.0
 

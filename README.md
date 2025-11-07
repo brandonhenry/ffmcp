@@ -13,6 +13,7 @@
 - 🧠 **Memory with Zep (Brains)**: Create brains, store/retrieve chat memory, collections, and graph
 - 🤖 **Agents**: Named agents with model, instructions, brain, dynamic properties, and actions (web, images, vision, embeddings)
 - 💬 **Threads**: Conversation history for both chat and agents - maintain context across multiple interactions
+- 🎤 **Voiceover/TTS**: Full text-to-speech support with multiple providers (ElevenLabs), voice management, and agent voice integration
 
 ## Installation
 
@@ -68,6 +69,9 @@ ffmcp config -p cohere -k YOUR_COHERE_API_KEY
 # Set Perplexity API key
 ffmcp config -p perplexity -k YOUR_PERPLEXITY_API_KEY
 
+# Set ElevenLabs API key (for voiceover/TTS)
+ffmcp config -p elevenlabs -k YOUR_ELEVENLABS_API_KEY
+
 # Or use environment variables (provider name in uppercase)
 export OPENAI_API_KEY=your_key
 export ANTHROPIC_API_KEY=your_key
@@ -78,6 +82,7 @@ export MISTRAL_API_KEY=your_key
 export TOGETHER_API_KEY=your_key
 export COHERE_API_KEY=your_key
 export PERPLEXITY_API_KEY=your_key
+export ELEVENLABS_API_KEY=your_key
 ```
 
 ### 2. Generate Text
@@ -135,6 +140,9 @@ ffmcp thread delete conversation1
 ffmcp agent create myagent -p openai -m gpt-4o-mini -i "You are a helpful assistant" --brain mybrain
 ffmcp agent create gemini-agent -p gemini -m gemini-2.0-flash-exp -i "You are a helpful assistant"
 ffmcp agent create groq-agent -p groq -m llama-3.1-70b-versatile -i "You are a helpful assistant"
+
+# Create an agent with voice (for TTS)
+ffmcp agent create myagent -p openai -m gpt-4o-mini -i "You are a helpful assistant" --voice my-voice
 
 # Create an agent with instructions from a file
 ffmcp agent create myagent -p openai -m gpt-4o-mini -f instructions.txt --brain mybrain
@@ -234,6 +242,118 @@ ffmcp openai tts "Welcome to the future" speech.mp3 -v nova -s 1.2
 # High quality model
 ffmcp openai tts "Important announcement" announcement.mp3 -m tts-1-hd
 ```
+
+### Voiceover/TTS System
+
+ffmcp includes a comprehensive voiceover/TTS system with support for multiple providers (starting with ElevenLabs). You can create voice configurations, manage them, and associate them with agents.
+
+#### Setup
+
+```bash
+# Configure ElevenLabs API key
+ffmcp config -p elevenlabs -k YOUR_ELEVENLABS_API_KEY
+
+# Or use environment variable
+export ELEVENLABS_API_KEY=your_key
+```
+
+#### Discover Available Voices
+
+```bash
+# List all voices from ElevenLabs
+ffmcp voiceover provider list --provider elevenlabs
+
+# Show details of a specific voice
+ffmcp voiceover provider show --provider elevenlabs 21m00Tcm4TlvDq8ikWAM
+```
+
+#### Create Voice Configurations
+
+```bash
+# Create a voice configuration with default settings
+ffmcp voiceover create my-voice \
+  --provider elevenlabs \
+  --voice-id 21m00Tcm4TlvDq8ikWAM \
+  --description "My favorite voice"
+
+# Create with custom settings
+ffmcp voiceover create narrator \
+  --provider elevenlabs \
+  --voice-id pNInz6obpgDQGcFmaJgB \
+  --model-id eleven_multilingual_v2 \
+  --stability 0.5 \
+  --similarity-boost 0.75 \
+  --style 0.0 \
+  --use-speaker-boost \
+  --output-format mp3_44100_128 \
+  --description "Narrator voice for stories"
+```
+
+#### Manage Voice Configurations
+
+```bash
+# List all saved voices
+ffmcp voiceover list
+
+# Show voice details
+ffmcp voiceover show my-voice
+
+# Update voice settings
+ffmcp voiceover update my-voice --stability 0.6 --similarity-boost 0.8
+
+# Delete a voice
+ffmcp voiceover delete my-voice
+```
+
+#### Generate Speech
+
+```bash
+# Using a saved voice configuration
+ffmcp tts "Hello, this is a test" output.mp3 --voice my-voice
+
+# Using provider and voice ID directly
+ffmcp tts "Direct voice usage" output.mp3 \
+  --provider elevenlabs \
+  --voice-id 21m00Tcm4TlvDq8ikWAM
+
+# With custom parameters (overrides saved config)
+ffmcp tts "Custom settings" output.mp3 \
+  --voice my-voice \
+  --stability 0.7 \
+  --similarity-boost 0.9
+```
+
+#### Agent Voice Integration
+
+```bash
+# Create agent with voice
+ffmcp agent create assistant \
+  -p openai \
+  -m gpt-4o-mini \
+  -i "You are a helpful assistant" \
+  --voice my-voice
+
+# Set voice for existing agent
+ffmcp agent voice set assistant my-voice
+
+# Show agent's voice
+ffmcp agent voice show assistant
+
+# Remove voice from agent
+ffmcp agent voice remove assistant
+```
+
+**Voice Parameters:**
+- `--stability` (0.0-1.0): Controls voice stability (lower = more variation)
+- `--similarity-boost` (0.0-1.0): Controls similarity to original voice
+- `--style` (0.0-1.0): Controls style exaggeration
+- `--use-speaker-boost`: Enable speaker boost for clearer speech
+- `--output-format`: Audio format (e.g., `mp3_44100_128`, `pcm_16000`, etc.)
+- `--model-id`: TTS model (e.g., `eleven_multilingual_v2`, `eleven_turbo_v2`)
+
+**Supported Providers:**
+- **ElevenLabs**: High-quality multilingual TTS with voice cloning support
+- More providers coming soon!
 
 ### Embeddings
 
@@ -652,18 +772,22 @@ ffmcp/
 │   ├── __init__.py
 │   ├── cli.py              # Main CLI interface
 │   ├── config.py           # Configuration management
-│   └── providers/
+│   ├── providers/
+│   │   ├── __init__.py
+│   │   ├── base.py         # Base provider interface
+│   │   ├── openai_provider.py      # Full OpenAI implementation
+│   │   ├── anthropic_provider.py   # Anthropic Claude
+│   │   ├── gemini_provider.py      # Google Gemini
+│   │   ├── groq_provider.py        # Groq
+│   │   ├── deepseek_provider.py    # DeepSeek
+│   │   ├── mistral_provider.py     # Mistral AI
+│   │   ├── together_provider.py   # Together AI
+│   │   ├── cohere_provider.py      # Cohere
+│   │   └── perplexity_provider.py  # Perplexity AI
+│   └── voiceover/
 │       ├── __init__.py
-│       ├── base.py         # Base provider interface
-│       ├── openai_provider.py      # Full OpenAI implementation
-│       ├── anthropic_provider.py   # Anthropic Claude
-│       ├── gemini_provider.py      # Google Gemini
-│       ├── groq_provider.py        # Groq
-│       ├── deepseek_provider.py    # DeepSeek
-│       ├── mistral_provider.py     # Mistral AI
-│       ├── together_provider.py    # Together AI
-│       ├── cohere_provider.py      # Cohere
-│       └── perplexity_provider.py  # Perplexity AI
+│       ├── base.py         # Base TTS provider interface
+│       └── elevenlabs_provider.py   # ElevenLabs TTS implementation
 ├── setup.py
 ├── requirements.txt
 └── README.md
@@ -680,6 +804,16 @@ ffmcp/
 - ✅ **Function Calling** - Tools and function calling support
 - ✅ **Assistants API** - Create and manage AI assistants
 - ✅ **Streaming** - Real-time streaming for all text generation
+
+## Voiceover/TTS Features Supported
+
+- ✅ **Multiple TTS Providers** - ElevenLabs (more coming soon)
+- ✅ **Voice Configuration Management** - Create, read, update, delete voice configs
+- ✅ **Provider Voice Discovery** - List and explore available voices
+- ✅ **Agent Voice Integration** - Assign voices to agents
+- ✅ **Flexible TTS Generation** - Use saved configs or direct parameters
+- ✅ **Advanced Voice Settings** - Stability, similarity, style, speaker boost
+- ✅ **Multiple Output Formats** - MP3, PCM, and more
 
 ## Adding New Providers
 
@@ -710,6 +844,8 @@ class CohereProvider(BaseProvider):
 - [x] Multiple AI providers (9 providers supported!)
 - [x] Image generation support
 - [x] Audio transcription/translation
+- [x] Voiceover/TTS system with multiple providers
+- [x] Agent voice integration
 - [ ] Batch processing
 - [ ] Plugin system for custom providers
 - [ ] Python API for programmatic use
@@ -722,6 +858,8 @@ For detailed information about each provider, see [PROVIDERS.md](PROVIDERS.md) (
 ```bash
 ffmcp providers
 ```
+
+For comprehensive voiceover/TTS documentation, see [VOICEOVER.md](VOICEOVER.md).
 
 ## Contributing
 

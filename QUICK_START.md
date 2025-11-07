@@ -41,6 +41,9 @@ ffmcp config -p cohere -k YOUR_COHERE_API_KEY
 
 # Perplexity AI
 ffmcp config -p perplexity -k YOUR_PERPLEXITY_API_KEY
+
+# ElevenLabs (for voiceover/TTS)
+ffmcp config -p elevenlabs -k YOUR_ELEVENLABS_API_KEY
 ```
 
 Or use environment variables:
@@ -105,6 +108,19 @@ ffmcp openai embed "Sample text"
 - `ffmcp openai tools` - Function calling
 - `ffmcp openai assistant` - Manage assistants
 
+### Voiceover/TTS Commands
+- `ffmcp voiceover create` - Create voice configuration
+- `ffmcp voiceover list` - List saved voices
+- `ffmcp voiceover show <name>` - Show voice details
+- `ffmcp voiceover update <name>` - Update voice settings
+- `ffmcp voiceover delete <name>` - Delete voice
+- `ffmcp voiceover provider list --provider elevenlabs` - List provider voices
+- `ffmcp voiceover provider show --provider elevenlabs <voice_id>` - Show provider voice
+- `ffmcp tts <text> <output_file>` - Generate speech
+- `ffmcp agent voice set <agent> <voice>` - Set agent voice
+- `ffmcp agent voice remove <agent>` - Remove agent voice
+- `ffmcp agent voice show <agent>` - Show agent voice
+
 ### Brain (Zep) Commands
 - `ffmcp brain create|list|use|current|delete`
 - `ffmcp brain memory add|get|search|clear`
@@ -150,6 +166,13 @@ ffmcp agent thread create assistant project1
 ffmcp agent thread use assistant project1
 ffmcp agent run "Plan a project" --agent assistant
 ffmcp agent run "Add details" --agent assistant  # Remembers conversation!
+
+# 9. Use voiceover/TTS
+ffmcp config -p elevenlabs -k YOUR_ELEVENLABS_API_KEY
+ffmcp voiceover provider list --provider elevenlabs
+ffmcp voiceover create my-voice --provider elevenlabs --voice-id 21m00Tcm4TlvDq8ikWAM
+ffmcp tts "Hello, world!" output.mp3 --voice my-voice
+ffmcp agent voice set assistant my-voice
 ```
 
 ## Troubleshooting

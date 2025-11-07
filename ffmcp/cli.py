@@ -1465,8 +1465,8 @@ def voiceover():
 
 @voiceover.command('create')
 @click.argument('name')
-@click.option('--provider', '-p', required=True, help='TTS provider (elevenlabs)')
-@click.option('--voice-id', required=True, help='Voice ID from provider')
+@click.option('--provider', '-p', required=True, help='TTS provider (elevenlabs, fishaudio)')
+@click.option('--voice-id', help='Voice ID from provider (required for elevenlabs)')
 @click.option('--model-id', help='Model ID (e.g., eleven_multilingual_v2)')
 @click.option('--stability', type=float, help='Stability (0.0-1.0)')
 @click.option('--similarity-boost', type=float, help='Similarity boost (0.0-1.0)')
@@ -1474,13 +1474,31 @@ def voiceover():
 @click.option('--use-speaker-boost/--no-speaker-boost', default=True, help='Use speaker boost')
 @click.option('--output-format', help='Output format (e.g., mp3_44100_128)')
 @click.option('--description', help='Description for this voice')
-def voiceover_create(name: str, provider: str, voice_id: str, model_id: Optional[str],
+@click.option('--reference-id', help='FishAudio: Reference/voice model ID')
+@click.option('--reference-audio', type=click.Path(exists=True), help='FishAudio: Path to reference audio file for voice cloning')
+@click.option('--reference-text', help='FishAudio: Text corresponding to reference audio')
+@click.option('--format', help='FishAudio: Output format (mp3, wav, pcm, opus)')
+@click.option('--prosody-speed', type=float, help='FishAudio: Speech speed (e.g., 1.0)')
+@click.option('--prosody-volume', type=float, help='FishAudio: Volume (e.g., 0)')
+def voiceover_create(name: str, provider: str, voice_id: Optional[str], model_id: Optional[str],
                      stability: Optional[float], similarity_boost: Optional[float],
                      style: Optional[float], use_speaker_boost: bool,
-                     output_format: Optional[str], description: Optional[str]):
+                     output_format: Optional[str], description: Optional[str],
+                     reference_id: Optional[str], reference_audio: Optional[str],
+                     reference_text: Optional[str], format: Optional[str],
+                     prosody_speed: Optional[float], prosody_volume: Optional[float]):
     """Create a new voiceover configuration."""
     config = Config()
     try:
+        # Build prosody dict if speed or volume provided
+        prosody = None
+        if prosody_speed is not None or prosody_volume is not None:
+            prosody = {}
+            if prosody_speed is not None:
+                prosody['speed'] = prosody_speed
+            if prosody_volume is not None:
+                prosody['volume'] = prosody_volume
+        
         config.create_voice(
             name=name,
             provider=provider,
@@ -1492,6 +1510,11 @@ def voiceover_create(name: str, provider: str, voice_id: str, model_id: Optional
             use_speaker_boost=use_speaker_boost,
             output_format=output_format,
             description=description,
+            reference_id=reference_id,
+            reference_audio=reference_audio,
+            reference_text=reference_text,
+            format=format,
+            prosody=prosody,
         )
         click.echo(f"Voice created: {name}")
     except Exception as e:
@@ -1511,7 +1534,7 @@ def voiceover_list():
             return
         for voice in voices:
             provider = voice.get('provider', 'unknown')
-            voice_id = voice.get('voice_id', 'unknown')
+            voice_id = voice.get('voice_id') or voice.get('reference_id') or 'N/A'
             desc = voice.get('description', '')
             desc_str = f" - {desc}" if desc else ""
             click.echo(f"{voice['name']} ({provider}:{voice_id}){desc_str}")
@@ -1548,10 +1571,19 @@ def voiceover_show(name: str):
 @click.option('--use-speaker-boost/--no-speaker-boost', default=None, help='Update speaker boost')
 @click.option('--output-format', help='Update output format')
 @click.option('--description', help='Update description')
+@click.option('--reference-id', help='FishAudio: Update reference/voice model ID')
+@click.option('--reference-audio', type=click.Path(exists=True), help='FishAudio: Update reference audio file path')
+@click.option('--reference-text', help='FishAudio: Update reference text')
+@click.option('--format', help='FishAudio: Update output format (mp3, wav, pcm, opus)')
+@click.option('--prosody-speed', type=float, help='FishAudio: Update speech speed')
+@click.option('--prosody-volume', type=float, help='FishAudio: Update volume')
 def voiceover_update(name: str, voice_id: Optional[str], model_id: Optional[str],
                      stability: Optional[float], similarity_boost: Optional[float],
                      style: Optional[float], use_speaker_boost: Optional[bool],
-                     output_format: Optional[str], description: Optional[str]):
+                     output_format: Optional[str], description: Optional[str],
+                     reference_id: Optional[str], reference_audio: Optional[str],
+                     reference_text: Optional[str], format: Optional[str],
+                     prosody_speed: Optional[float], prosody_volume: Optional[float]):
     """Update a voiceover configuration."""
     config = Config()
     try:
@@ -1572,6 +1604,27 @@ def voiceover_update(name: str, voice_id: Optional[str], model_id: Optional[str]
             updates['output_format'] = output_format
         if description is not None:
             updates['description'] = description
+        
+        # FishAudio-specific updates
+        if reference_id is not None:
+            updates['reference_id'] = reference_id
+        if reference_audio is not None:
+            updates['reference_audio'] = reference_audio
+        if reference_text is not None:
+            updates['reference_text'] = reference_text
+        if format is not None:
+            updates['format'] = format
+        
+        # Handle prosody updates
+        if prosody_speed is not None or prosody_volume is not None:
+            current_voice = config.get_voice(name)
+            current_prosody = current_voice.get('prosody', {}) if current_voice else {}
+            prosody = dict(current_prosody)
+            if prosody_speed is not None:
+                prosody['speed'] = prosody_speed
+            if prosody_volume is not None:
+                prosody['volume'] = prosody_volume
+            updates['prosody'] = prosody
         
         if not updates:
             click.echo("Error: No updates provided", err=True)
@@ -1606,7 +1659,7 @@ def provider():
 
 
 @provider.command('list')
-@click.option('--provider', '-p', required=True, help='TTS provider (elevenlabs)')
+@click.option('--provider', '-p', required=True, help='TTS provider (elevenlabs, fishaudio)')
 def provider_list(provider: str):
     """List available voices from a TTS provider."""
     config = Config()
@@ -1631,7 +1684,7 @@ def provider_list(provider: str):
 
 
 @provider.command('show')
-@click.option('--provider', '-p', required=True, help='TTS provider (elevenlabs)')
+@click.option('--provider', '-p', required=True, help='TTS provider (elevenlabs, fishaudio)')
 @click.argument('voice_id')
 def provider_show(provider: str, voice_id: str):
     """Show details of a provider voice."""
@@ -1653,7 +1706,7 @@ def provider_show(provider: str, voice_id: str):
 @click.argument('text')
 @click.argument('output_file', type=click.Path())
 @click.option('--voice', '-v', help='Voice configuration name (from voiceover list)')
-@click.option('--provider', '-p', help='TTS provider (elevenlabs)')
+@click.option('--provider', '-p', help='TTS provider (elevenlabs, fishaudio)')
 @click.option('--voice-id', help='Voice ID (if not using saved voice)')
 @click.option('--model-id', help='Model ID')
 @click.option('--stability', type=float, help='Stability (0.0-1.0)')
@@ -1661,10 +1714,18 @@ def provider_show(provider: str, voice_id: str):
 @click.option('--style', type=float, help='Style (0.0-1.0)')
 @click.option('--use-speaker-boost/--no-speaker-boost', default=True, help='Use speaker boost')
 @click.option('--output-format', help='Output format')
+@click.option('--reference-id', help='FishAudio: Reference/voice model ID')
+@click.option('--reference-audio', type=click.Path(exists=True), help='FishAudio: Path to reference audio file for voice cloning')
+@click.option('--reference-text', help='FishAudio: Text corresponding to reference audio')
+@click.option('--format', help='FishAudio: Output format (mp3, wav, pcm, opus)')
+@click.option('--prosody-speed', type=float, help='FishAudio: Speech speed (e.g., 1.0)')
+@click.option('--prosody-volume', type=float, help='FishAudio: Volume (e.g., 0)')
 def tts(text: str, output_file: str, voice: Optional[str], provider: Optional[str],
         voice_id: Optional[str], model_id: Optional[str], stability: Optional[float],
         similarity_boost: Optional[float], style: Optional[float], use_speaker_boost: bool,
-        output_format: Optional[str]):
+        output_format: Optional[str], reference_id: Optional[str], reference_audio: Optional[str],
+        reference_text: Optional[str], format: Optional[str], prosody_speed: Optional[float],
+        prosody_volume: Optional[float]):
     """Convert text to speech."""
     config = Config()
     try:
@@ -1690,28 +1751,69 @@ def tts(text: str, output_file: str, voice: Optional[str], provider: Optional[st
                 use_speaker_boost = voice_config.get('use_speaker_boost', True)
             if output_format is None:
                 output_format = voice_config.get('output_format')
-        elif provider and voice_id:
-            # Use direct provider/voice_id
+            # FishAudio parameters
+            if reference_id is None:
+                reference_id = voice_config.get('reference_id')
+            if reference_audio is None:
+                reference_audio = voice_config.get('reference_audio')
+            if reference_text is None:
+                reference_text = voice_config.get('reference_text')
+            if format is None:
+                format = voice_config.get('format')
+            if prosody_speed is None and prosody_volume is None:
+                prosody_config = voice_config.get('prosody')
+                if prosody_config:
+                    prosody_speed = prosody_config.get('speed')
+                    prosody_volume = prosody_config.get('volume')
+        elif provider and (voice_id or reference_id or reference_audio):
+            # Use direct provider/voice_id or FishAudio reference
             pass
         else:
-            click.echo("Error: Provide --voice or both --provider and --voice-id", err=True)
+            click.echo("Error: Provide --voice or --provider with --voice-id/--reference-id/--reference-audio", err=True)
             sys.exit(1)
         
-        if not provider or not voice_id:
-            click.echo("Error: Provider and voice_id are required", err=True)
+        if not provider:
+            click.echo("Error: Provider is required", err=True)
             sys.exit(1)
+        
+        # Build kwargs for provider
+        kwargs = {}
+        if model_id:
+            kwargs['model_id'] = model_id
+        if stability is not None:
+            kwargs['stability'] = stability
+        if similarity_boost is not None:
+            kwargs['similarity_boost'] = similarity_boost
+        if style is not None:
+            kwargs['style'] = style
+        if use_speaker_boost is not None:
+            kwargs['use_speaker_boost'] = use_speaker_boost
+        if output_format:
+            kwargs['output_format'] = output_format
+        
+        # FishAudio-specific kwargs
+        if reference_id:
+            kwargs['reference_id'] = reference_id
+        if reference_audio:
+            kwargs['reference_audio'] = reference_audio
+        if reference_text:
+            kwargs['reference_text'] = reference_text
+        if format:
+            kwargs['format'] = format
+        if prosody_speed is not None or prosody_volume is not None:
+            prosody = {}
+            if prosody_speed is not None:
+                prosody['speed'] = prosody_speed
+            if prosody_volume is not None:
+                prosody['volume'] = prosody_volume
+            kwargs['prosody'] = prosody
         
         tts_provider = get_tts_provider(provider, config)
         result = tts_provider.text_to_speech(
             text=text,
             output_path=output_file,
             voice_id=voice_id,
-            model_id=model_id,
-            stability=stability,
-            similarity_boost=similarity_boost,
-            style=style,
-            use_speaker_boost=use_speaker_boost,
-            output_format=output_format,
+            **kwargs
         )
         click.echo(f"Audio saved to: {result}")
     except Exception as e:

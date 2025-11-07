@@ -28,10 +28,13 @@ class ElevenLabsProvider(BaseTTSProvider):
         self,
         text: str,
         output_path: str,
-        voice_id: str,
+        voice_id: Optional[str] = None,
         **kwargs
     ) -> str:
         """Convert text to speech using ElevenLabs"""
+        if not voice_id:
+            raise ValueError("voice_id is required for ElevenLabs provider")
+        
         model_id = kwargs.get('model_id', 'eleven_multilingual_v2')
         stability = kwargs.get('stability', 0.5)
         similarity_boost = kwargs.get('similarity_boost', 0.75)

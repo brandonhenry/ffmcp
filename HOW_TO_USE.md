@@ -593,6 +593,8 @@ ffmcp providers
 
 ## Troubleshooting
 
+- **"Could not find a version that satisfies the requirement ffmcp"**: This package is not on PyPI. Install from source using `pip install -e .` from the project directory.
+- **"externally-managed-environment" error**: You must use a virtual environment on macOS with Homebrew Python. Create one with `python3 -m venv venv` and activate it.
 - **"Command not found"**: Activate venv with `source venv/bin/activate`
 - **"API key not configured"**: Run `ffmcp config -p openai -k YOUR_KEY`
 - **"Module not found"**: Install with `pip install -e ".[all]"`

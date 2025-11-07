@@ -17,6 +17,8 @@
 
 ## Installation
 
+**Note:** This package is not currently published to PyPI. You must install it from the source code.
+
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/ffmcp.git
@@ -35,7 +37,15 @@ pip install -e ".[anthropic]"
 pip install -e ".[all]"
 ```
 
-**Note:** On macOS with Homebrew Python, you'll need to use a virtual environment. If you prefer system-wide installation, use `pip3` with `--user` flag or `pipx`.
+**Important Notes:**
+- **Not on PyPI**: This package is not available via `pip install ffmcp`. You must install from source using `pip install -e .` from the project directory.
+- **macOS/Homebrew Python**: On macOS with Homebrew Python, you'll encounter an "externally-managed-environment" error if you try to install system-wide. Always use a virtual environment:
+  ```bash
+  python3 -m venv ~/.venvs/ffmcp  # or any path you prefer
+  source ~/.venvs/ffmcp/bin/activate
+  pip install -e .
+  ```
+- **Python Versions**: Supports Python 3.8 through 3.14.
 
 ## Quick Start
 

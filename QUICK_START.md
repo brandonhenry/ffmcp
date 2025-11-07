@@ -1,8 +1,26 @@
 # Quick Setup Guide
 
-## ✅ Installation Complete!
+## Installation
 
-Your `ffmcp` tool is now installed and ready to use.
+**Important:** This package is not published to PyPI. You must install it from source.
+
+```bash
+# Clone the repository (if you haven't already)
+git clone https://github.com/yourusername/ffmcp.git
+cd ffmcp
+
+# Create and activate a virtual environment (required on macOS with Homebrew Python)
+python3 -m venv ~/.venvs/ffmcp  # or venv in the project directory
+source ~/.venvs/ffmcp/bin/activate  # or: source venv/bin/activate
+
+# Install in development mode
+pip install -e .
+
+# Or install with all providers
+pip install -e ".[all]"
+```
+
+**Note:** If you get an "externally-managed-environment" error on macOS, make sure you're using a virtual environment (as shown above).
 
 ## Next Steps
 
@@ -177,6 +195,8 @@ ffmcp agent voice set assistant my-voice
 
 ## Troubleshooting
 
+- **"Could not find a version that satisfies the requirement ffmcp"**: This package is not on PyPI. Install from source using `pip install -e .` from the project directory.
+- **"externally-managed-environment" error**: You must use a virtual environment on macOS with Homebrew Python. Create one with `python3 -m venv venv` and activate it.
 - **Command not found**: Make sure the virtual environment is activated
 - **API key error**: Run `ffmcp config -p openai -k YOUR_KEY`
 - **Import errors**: Make sure you installed with `pip install -e ".[all]"`

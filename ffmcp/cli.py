@@ -964,7 +964,8 @@ def agent():
 @click.argument('name')
 @click.option('--provider', '-p', default='openai', type=click.Choice(['openai', 'anthropic', 'gemini', 'groq', 'deepseek', 'mistral', 'together', 'cohere', 'perplexity']), help='Provider name')
 @click.option('--model', '-m', required=True, help='Default model for this agent')
-@click.option('--instructions', '-i', help='System prompt instructions')
+@click.option('--instructions', '-i', help='System prompt instructions (inline text)')
+@click.option('--instructions-file', '-f', type=click.File('r', encoding='utf-8'), help='Read instructions from file')
 @click.option('--brain', help='Optional brain name for memory/search')
 @click.option('--prop', 'props', multiple=True, help='Set property key=value (repeatable)')
 @click.option('--web/--no-web', default=True, help='Enable web_fetch action')
@@ -972,11 +973,18 @@ def agent():
 @click.option('--vision-urls/--no-vision-urls', default=True, help='Enable analyze_image_urls action')
 @click.option('--embeddings/--no-embeddings', default=True, help='Enable create_embedding action')
 @click.option('--brain-search/--no-brain-search', default=True, help='Enable brain_document_search action')
-def agent_create(name: str, provider: str, model: str, instructions: Optional[str], brain: Optional[str], props: tuple,
+def agent_create(name: str, provider: str, model: str, instructions: Optional[str], instructions_file: Optional, brain: Optional[str], props: tuple,
                  web: bool, image_gen: bool, vision_urls: bool, embeddings: bool, brain_search: bool):
     """Create a new agent and set it active."""
     config = Config()
     try:
+        # Handle instructions from file or inline
+        final_instructions = instructions
+        if instructions_file:
+            if instructions:
+                click.echo("Warning: Both --instructions and --instructions-file provided. Using --instructions-file.", err=True)
+            final_instructions = instructions_file.read()
+        
         properties = {}
         for p in props or []:
             if '=' in p:
@@ -997,7 +1005,7 @@ def agent_create(name: str, provider: str, model: str, instructions: Optional[st
             name,
             provider=provider,
             model=model,
-            instructions=instructions,
+            instructions=final_instructions,
             brain=brain,
             properties=properties,
             actions=actions,

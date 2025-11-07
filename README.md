@@ -123,6 +123,9 @@ ffmcp agent create myagent -p openai -m gpt-4o-mini -i "You are a helpful assist
 ffmcp agent create gemini-agent -p gemini -m gemini-2.0-flash-exp -i "You are a helpful assistant"
 ffmcp agent create groq-agent -p groq -m llama-3.1-70b-versatile -i "You are a helpful assistant"
 
+# Create an agent with instructions from a file
+ffmcp agent create myagent -p openai -m gpt-4o-mini -f instructions.txt --brain mybrain
+
 # List and select the active agent
 ffmcp agent list
 ffmcp agent use myagent

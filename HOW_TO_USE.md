@@ -88,8 +88,11 @@ ffmcp chat "Solve this math problem" -s "You are a helpful math tutor" -p openai
 # Create agent with defaults (OpenAI)
 ffmcp agent create myagent -p openai -m gpt-4o-mini -i "You are a helpful assistant"
 
+# Create agent with instructions from a file
+ffmcp agent create myagent -p openai -m gpt-4o-mini -f instructions.txt
+
 # Optionally attach a brain for memory and document search
-ffmcp agent create research -p openai -m gpt-4o-mini --brain mybrain -i "You are a research assistant"
+ffmcp agent create research -p openai -m gpt-4o-mini --brain mybrain -f research_instructions.txt
 
 # Enable/disable actions
 ffmcp agent action enable myagent web_fetch
@@ -97,7 +100,7 @@ ffmcp agent action disable myagent generate_image
 
 # Run the active agent
 ffmcp agent use myagent
-ffmcp agent run "Find and summarize today’s top AI news"
+ffmcp agent run "Find and summarize today's top AI news"
 ```
 
 ## OpenAI Features

@@ -30,6 +30,16 @@ if [ "$NPM_VERSION" != "$PYTHON_VERSION" ]; then
     fi
     
     echo "✅ Updated setup.py to version ${NPM_VERSION}"
+    
+    # Also update __init__.py if it exists
+    if [ -f "ffmcp/__init__.py" ]; then
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i '' "s/__version__ = \".*\"/__version__ = \"${NPM_VERSION}\"/" ffmcp/__init__.py
+        else
+            sed -i "s/__version__ = \".*\"/__version__ = \"${NPM_VERSION}\"/" ffmcp/__init__.py
+        fi
+        echo "✅ Updated ffmcp/__init__.py to version ${NPM_VERSION}"
+    fi
 else
     echo "✅ Versions are already in sync"
 fi

@@ -7,8 +7,8 @@ with open("README.md", "r", encoding="utf-8") as fh:
 setup(
     name="ffmcp",
     version="0.1.5",
-    author="Your Name",
-    author_email="your.email@example.com",
+    author="Brandon Henry",
+    author_email="itsbhenry@gmail.com",
     description="AI command-line tool inspired by ffmpeg",
     long_description=long_description,
     long_description_content_type="text/markdown",

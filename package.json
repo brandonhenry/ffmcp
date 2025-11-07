@@ -8,7 +8,16 @@
     "ffmcp": "./bin/ffmcp.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "version:patch": "npm version patch --no-git-tag-version",
+    "version:minor": "npm version minor --no-git-tag-version",
+    "version:major": "npm version major --no-git-tag-version",
+    "publish:patch": "./scripts/publish.sh patch",
+    "publish:minor": "./scripts/publish.sh minor",
+    "publish:major": "./scripts/publish.sh major",
+    "publish:dry-run": "npm pack --dry-run",
+    "sync-version": "./scripts/sync-version.sh",
+    "prepublishOnly": "node -e \"console.log('Publishing ffmcp to npm...')\""
   },
   "keywords": [
     "ai",

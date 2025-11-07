@@ -80,6 +80,18 @@ ffmcp chat "What is 2+2?" -p openai
 
 # With system message (sets the AI's role)
 ffmcp chat "Solve this math problem" -s "You are a helpful math tutor" -p openai
+
+# Chat with thread (maintains conversation history)
+ffmcp chat "Hello, my name is Alice" -t conversation1
+ffmcp chat "What's my name?" -t conversation1  # Remembers!
+
+# Thread management for chat
+ffmcp thread create conversation1
+ffmcp thread list
+ffmcp thread use conversation1
+ffmcp thread current
+ffmcp thread clear conversation1
+ffmcp thread delete conversation1
 ```
 
 ## Agents
@@ -124,6 +136,100 @@ ffmcp agent run "Find and summarize today's top AI news"
 # Run with specific thread
 ffmcp agent run "Continue the conversation" --thread conversation1
 ```
+
+## Threads: Conversation History
+
+Threads allow you to maintain conversation history for both `chat` and `agent run` commands. This enables ongoing conversations where the AI remembers previous messages.
+
+### Chat Threads
+
+Chat threads work with the `chat` command and are independent of agents:
+
+```bash
+# Create a thread
+ffmcp thread create conversation1
+
+# Set as active (optional - chat uses active thread automatically)
+ffmcp thread use conversation1
+
+# Chat with history
+ffmcp chat "Hello, I'm Alice" -t conversation1 -p openai
+ffmcp chat "What's my name?" -t conversation1 -p openai  # Remembers!
+
+# Use active thread (no -t flag needed)
+ffmcp chat "Hello" -p openai
+ffmcp chat "Continue" -p openai  # Automatically uses active thread
+
+# System messages are saved to thread
+ffmcp chat "Solve this" -s "You are a math tutor" -t math-thread
+ffmcp chat "Another problem" -t math-thread  # Remembers system message
+
+# Manage threads
+ffmcp thread list
+ffmcp thread current
+ffmcp thread clear conversation1
+ffmcp thread delete conversation1
+```
+
+**Chat Thread Commands:**
+- `ffmcp thread create <name>` - Create a new thread
+- `ffmcp thread list` - List all threads
+- `ffmcp thread use <name>` - Set active thread
+- `ffmcp thread current` - Show active thread
+- `ffmcp thread clear <name>` - Clear messages (keeps thread)
+- `ffmcp thread delete <name>` - Delete thread
+
+### Agent Threads
+
+Agent threads are tied to specific agents and maintain conversation history for agent runs:
+
+```bash
+# Create agent and thread
+ffmcp agent create myagent -p openai -m gpt-4o-mini -i "You are helpful"
+ffmcp agent thread create myagent conversation1
+
+# Set active thread (optional - agent run uses active thread automatically)
+ffmcp agent thread use myagent conversation1
+
+# Run agent with conversation history
+ffmcp agent run "Plan a trip" --agent myagent
+ffmcp agent run "Add details" --agent myagent  # Remembers!
+
+# Specify thread explicitly
+ffmcp agent run "New topic" --agent myagent --thread conversation2
+
+# Manage threads
+ffmcp agent thread list myagent
+ffmcp agent thread current myagent
+ffmcp agent thread clear myagent conversation1
+ffmcp agent thread delete myagent conversation1
+```
+
+**Agent Thread Commands:**
+- `ffmcp agent thread create <agent> <name>` - Create thread for agent
+- `ffmcp agent thread list <agent>` - List threads for agent
+- `ffmcp agent thread use <agent> <name>` - Set active thread
+- `ffmcp agent thread current <agent>` - Show active thread
+- `ffmcp agent thread clear <agent> <name>` - Clear messages
+- `ffmcp agent thread delete <agent> <name>` - Delete thread
+
+### Differences: Chat Threads vs Agent Threads
+
+| Feature | Chat Threads | Agent Threads |
+|---------|--------------|---------------|
+| **Command** | `ffmcp chat` | `ffmcp agent run` |
+| **Tied to** | None (independent) | Specific agent |
+| **Actions/Tools** | No | Yes (if agent has actions) |
+| **System Messages** | Saved to thread | From agent instructions |
+| **Use Case** | Simple conversations | Agent-powered workflows |
+
+### Tips
+
+1. **Use chat threads** for simple conversations without agent features
+2. **Use agent threads** when you need agent actions (web search, image generation, etc.)
+3. **Active threads** are used automatically - no need to specify `-t` or `--thread` every time
+4. **Multiple threads** let you switch between different conversation contexts
+5. **Clear vs Delete**: `clear` removes messages but keeps the thread; `delete` removes the thread entirely
 
 ## OpenAI Features
 
@@ -273,6 +379,8 @@ ffmcp openai assistant upload document.pdf
 ```
 
 ## 🧠 Brains (Zep Memory)
+
+**Note:** Brains are separate from threads. Threads maintain conversation history locally, while Brains provide advanced memory features including semantic search, document storage, and graph relationships. You can use both together - agents can have threads for conversation history AND a brain for long-term memory and document search.
 
 ### Setup Zep
 ```bash

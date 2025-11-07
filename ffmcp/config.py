@@ -491,3 +491,111 @@ class Config:
             })
         self._save_config()
 
+    # ---------------- Chat thread management (not tied to agents) ----------------
+    def list_chat_threads(self) -> List[Dict[str, Any]]:
+        """List all chat threads"""
+        threads = self._config.get('chat_threads', {})
+        active_thread = self._config.get('active_chat_thread')
+        return [
+            {
+                'name': name,
+                'message_count': len(thread.get('messages', [])),
+                'created_at': thread.get('created_at'),
+                'active': name == active_thread,
+            }
+            for name, thread in threads.items()
+        ]
+
+    def get_chat_thread(self, thread_name: str) -> Dict:
+        """Get chat thread data"""
+        threads = self._config.get('chat_threads', {})
+        return threads.get(thread_name) or {}
+
+    def create_chat_thread(self, thread_name: str) -> Dict:
+        """Create a new chat thread"""
+        if not thread_name or not thread_name.strip():
+            raise ValueError('thread name is required')
+        
+        threads = self._config.setdefault('chat_threads', {})
+        
+        if thread_name in threads:
+            raise ValueError(f'thread already exists: {thread_name}')
+        
+        thread_data = {
+            'messages': [],
+            'created_at': datetime.now(timezone.utc).isoformat(),
+        }
+        threads[thread_name] = thread_data
+        
+        # Set as active chat thread
+        self._config['active_chat_thread'] = thread_name
+        
+        self._save_config()
+        return thread_data
+
+    def delete_chat_thread(self, thread_name: str):
+        """Delete a chat thread"""
+        threads = self._config.get('chat_threads', {})
+        if thread_name in threads:
+            del threads[thread_name]
+            # If this was the active thread, clear it
+            if self._config.get('active_chat_thread') == thread_name:
+                self._config['active_chat_thread'] = None
+            self._save_config()
+
+    def set_active_chat_thread(self, thread_name: Optional[str]):
+        """Set active chat thread"""
+        if thread_name is not None:
+            # Verify thread exists
+            threads = self._config.get('chat_threads', {})
+            if thread_name not in threads:
+                raise ValueError(f'unknown thread: {thread_name}')
+        
+        self._config['active_chat_thread'] = thread_name
+        self._save_config()
+
+    def get_active_chat_thread(self) -> Optional[str]:
+        """Get active chat thread name"""
+        return self._config.get('active_chat_thread')
+
+    def clear_chat_thread(self, thread_name: str):
+        """Clear all messages from a chat thread"""
+        threads = self._config.get('chat_threads', {})
+        if thread_name not in threads:
+            raise ValueError(f'unknown thread: {thread_name}')
+        threads[thread_name]['messages'] = []
+        self._save_config()
+
+    def add_chat_thread_message(self, thread_name: str, role: str, content: str):
+        """Add a message to a chat thread"""
+        threads = self._config.setdefault('chat_threads', {})
+        
+        if thread_name not in threads:
+            # Auto-create thread if it doesn't exist
+            threads[thread_name] = {
+                'messages': [],
+                'created_at': datetime.now(timezone.utc).isoformat(),
+            }
+        
+        threads[thread_name]['messages'].append({
+            'role': role,
+            'content': content,
+            'timestamp': datetime.now(timezone.utc).isoformat(),
+        })
+        self._save_config()
+
+    def get_chat_thread_messages(self, thread_name: Optional[str] = None) -> List[Dict[str, str]]:
+        """Get messages from a chat thread. If thread_name is None, uses active thread."""
+        if thread_name is None:
+            thread_name = self.get_active_chat_thread()
+            if not thread_name:
+                return []
+        
+        thread = self.get_chat_thread(thread_name)
+        messages = thread.get('messages', [])
+        # Return in format expected by chat API (role, content)
+        return [
+            {'role': msg.get('role'), 'content': msg.get('content', '')}
+            for msg in messages
+        ]
+

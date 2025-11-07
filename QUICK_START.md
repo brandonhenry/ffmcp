@@ -89,9 +89,11 @@ ffmcp openai embed "Sample text"
 
 ### Core Commands
 - `ffmcp generate` - Generate text
-- `ffmcp chat` - Chat with AI
+- `ffmcp chat` - Chat with AI (use `--thread` for conversation history)
 - `ffmcp config` - Manage API keys
 - `ffmcp providers` - List providers
+- `ffmcp thread` - Manage chat threads (create, list, use, clear, delete)
+- `ffmcp agent thread` - Manage agent threads
 
 ### OpenAI Commands
 - `ffmcp openai vision` - Analyze images
@@ -118,23 +120,36 @@ ffmcp generate "Write a haiku about coding" -p openai
 ffmcp generate "Write a haiku about coding" -p gemini
 ffmcp generate "Write a haiku about coding" -p groq -s  # Stream with Groq (very fast!)
 
-# 2. Generate an image (OpenAI only)
+# 2. Chat with conversation history (threads)
+ffmcp thread create conversation1
+ffmcp thread use conversation1
+ffmcp chat "Hello, I'm Alice" -p openai
+ffmcp chat "What's my name?" -p openai  # Remembers!
+
+# 3. Generate an image (OpenAI only)
 ffmcp openai image "A futuristic AI laboratory"
 
-# 3. Create embeddings (OpenAI only)
+# 4. Create embeddings (OpenAI only)
 ffmcp openai embed "Machine learning is fascinating" -o embeddings.json
 
-# 4. Transcribe audio (OpenAI only)
+# 5. Transcribe audio (OpenAI only)
 ffmcp openai transcribe audio.mp3 -o transcript.txt
 
-# 5. Use Brain memory (Zep)
+# 6. Use Brain memory (Zep)
 ffmcp brain create mybrain
 ffmcp brain memory add --role user --role-type user --content "Remember: favorite color is blue"
 ffmcp brain memory get
 ffmcp brain memory get --brain mybrain --session session-123
 
-# 6. Try Perplexity for web-search enabled queries
+# 7. Try Perplexity for web-search enabled queries
 ffmcp generate "What are the latest developments in AI?" -p perplexity
+
+# 8. Use agents with threads
+ffmcp agent create assistant -p openai -m gpt-4o-mini -i "You are helpful"
+ffmcp agent thread create assistant project1
+ffmcp agent thread use assistant project1
+ffmcp agent run "Plan a project" --agent assistant
+ffmcp agent run "Add details" --agent assistant  # Remembers conversation!
 ```
 
 ## Troubleshooting

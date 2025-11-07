@@ -183,15 +183,46 @@ def generate(prompt: Optional[str], provider: str, model: Optional[str],
 @click.option('--provider', '-p', default='openai', help='AI provider to use (openai, anthropic, gemini, groq, deepseek, mistral, together, cohere, perplexity)')
 @click.option('--model', '-m', help='Model to use')
 @click.option('--system', '-s', help='System message')
-def chat(prompt: str, provider: str, model: Optional[str], system: Optional[str]):
-    """Chat with AI (conversational context)"""
+@click.option('--thread', '-t', help='Thread name (maintains conversation history). If not specified, uses active thread if available.')
+def chat(prompt: str, provider: str, model: Optional[str], system: Optional[str], thread: Optional[str]):
+    """Chat with AI (conversational context). Use --thread to maintain conversation history."""
     config = Config()
     
     try:
         provider_instance = get_provider(provider, config)
+        
+        # Load thread messages if thread is specified, or use active thread
+        thread_messages = []
+        if thread:
+            thread_messages = config.get_chat_thread_messages(thread)
+        else:
+            # Try to use active thread
+            active_thread = config.get_active_chat_thread()
+            if active_thread:
+                thread = active_thread
+                thread_messages = config.get_chat_thread_messages(thread)
+        
         messages = []
+        
+        # Add system message (only if not already in thread)
         if system:
             messages.append({"role": "system", "content": system})
+        elif thread_messages:
+            # Check if thread has a system message
+            for msg in thread_messages:
+                if msg.get('role') == 'system':
+                    messages.append(msg)
+                    break
+        
+        # Add thread messages (excluding system if we already added one)
+        system_added = any(m.get('role') == 'system' for m in messages)
+        for msg in thread_messages:
+            if msg.get('role') == 'system' and system_added:
+                continue  # Skip if we already have a system message
+            if msg.get('role') != 'system':
+                messages.append(msg)
+        
+        # Add current user message
         messages.append({"role": "user", "content": prompt})
         
         params = {}
@@ -200,6 +231,14 @@ def chat(prompt: str, provider: str, model: Optional[str], system: Optional[str]
         
         result = provider_instance.chat(messages, **params)
         click.echo(result)
+        
+        # Save to thread if specified or active thread exists
+        if thread:
+            # Save system message if provided and thread is new/empty
+            if system and not thread_messages:
+                config.add_chat_thread_message(thread, 'system', system)
+            config.add_chat_thread_message(thread, 'user', prompt)
+            config.add_chat_thread_message(thread, 'assistant', result)
     except Exception as e:
         error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
         click.echo(f"Error: {error_msg}", err=True)
@@ -224,6 +263,113 @@ def tokens(provider: Optional[str], date: Optional[str]):
     try:
         count = config.get_token_usage(date_str=date, provider=provider)
         click.echo(str(int(count)))
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@cli.command()
+def providers():
+    """List available AI providers"""
+    from ffmcp.providers import AVAILABLE_PROVIDERS
+    click.echo("Available providers:")
+    for name, provider_class in AVAILABLE_PROVIDERS.items():
+        click.echo(f"  - {name}: {provider_class.__doc__ or 'No description'}")
+
+
+@cli.group()
+def thread():
+    """Manage chat threads (conversation history for chat command)."""
+    pass
+
+
+@thread.command('create')
+@click.argument('thread_name')
+def thread_create(thread_name: str):
+    """Create a new chat thread."""
+    config = Config()
+    try:
+        config.create_chat_thread(thread_name)
+        click.echo(f"Thread created: {thread_name} (active)")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@thread.command('list')
+def thread_list():
+    """List all chat threads."""
+    config = Config()
+    try:
+        threads = config.list_chat_threads()
+        if not threads:
+            click.echo("No threads found")
+            return
+        for thread in threads:
+            marker = ' *' if thread.get('active') else ''
+            msg_count = thread.get('message_count', 0)
+            created = thread.get('created_at', 'unknown')
+            click.echo(f"{thread['name']}{marker} ({msg_count} messages, created: {created})")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@thread.command('use')
+@click.argument('thread_name')
+def thread_use(thread_name: str):
+    """Set active chat thread."""
+    config = Config()
+    try:
+        config.set_active_chat_thread(thread_name)
+        click.echo(f"Active thread: {thread_name}")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@thread.command('current')
+def thread_current():
+    """Show active chat thread."""
+    config = Config()
+    try:
+        thread_name = config.get_active_chat_thread()
+        if thread_name:
+            click.echo(thread_name)
+        else:
+            click.echo("No active thread")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@thread.command('clear')
+@click.argument('thread_name')
+def thread_clear(thread_name: str):
+    """Clear all messages from a chat thread."""
+    config = Config()
+    try:
+        config.clear_chat_thread(thread_name)
+        click.echo(f"Thread cleared: {thread_name}")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@thread.command('delete')
+@click.argument('thread_name')
+def thread_delete(thread_name: str):
+    """Delete a chat thread."""
+    config = Config()
+    try:
+        config.delete_chat_thread(thread_name)
+        click.echo(f"Thread deleted: {thread_name}")
     except Exception as e:
         error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
         click.echo(f"Error: {error_msg}", err=True)

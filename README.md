@@ -12,6 +12,7 @@
 - 🎨 **Full OpenAI Support**: All OpenAI features including vision, images, audio, embeddings, and assistants
 - 🧠 **Memory with Zep (Brains)**: Create brains, store/retrieve chat memory, collections, and graph
 - 🤖 **Agents**: Named agents with model, instructions, brain, dynamic properties, and actions (web, images, vision, embeddings)
+- 💬 **Threads**: Conversation history for both chat and agents - maintain context across multiple interactions
 
 ## Installation
 
@@ -113,6 +114,18 @@ ffmcp chat "Hello, how are you?" -p anthropic
 
 # With system message
 ffmcp chat "What is 2+2?" -s "You are a helpful math tutor"
+
+# Chat with thread (maintains conversation history)
+ffmcp chat "Hello" -t conversation1
+ffmcp chat "What did I just say?" -t conversation1  # Remembers previous messages
+
+# Thread management
+ffmcp thread create conversation1
+ffmcp thread list
+ffmcp thread use conversation1
+ffmcp thread current
+ffmcp thread clear conversation1
+ffmcp thread delete conversation1
 ```
 
 ### 4. Agents
@@ -152,6 +165,8 @@ ffmcp agent prop set myagent timezone UTC
 ffmcp agent action enable myagent web_fetch
 ffmcp agent action disable myagent generate_image
 ```
+
+**See [Threads: Conversation History](#threads-conversation-history) section for detailed thread documentation.**
 
 ## OpenAI Features
 
@@ -321,7 +336,156 @@ Notes:
 - The total is best-effort for streaming responses and depends on provider SDK support for usage in stream events.
 - Token accounting is updated automatically on each command invocation that returns usage from the provider.
 
+## Threads: Conversation History
+
+ffmcp supports **threads** to maintain conversation history for both the `chat` command and `agent run` command. Threads allow you to have ongoing conversations where the AI remembers previous messages.
+
+### Chat Threads
+
+Chat threads are independent conversation histories that work with the `chat` command:
+
+```bash
+# Create a chat thread
+ffmcp thread create conversation1
+
+# Set it as active (optional - chat will use active thread automatically)
+ffmcp thread use conversation1
+
+# Chat with conversation history
+ffmcp chat "Hello, my name is Alice" -t conversation1 -p openai
+ffmcp chat "What's my name?" -t conversation1 -p openai  # Remembers!
+
+# Or use active thread (no -t needed)
+ffmcp chat "Hello" -p openai  # Uses active thread automatically
+ffmcp chat "Continue" -p openai  # Remembers previous message
+
+# With system message (saved to thread)
+ffmcp chat "Solve 2+2" -s "You are a math tutor" -t math-thread
+ffmcp chat "Now solve 5+5" -t math-thread  # Remembers system message
+
+# Manage threads
+ffmcp thread list                    # List all chat threads
+ffmcp thread current                 # Show active thread
+ffmcp thread clear conversation1     # Clear messages (keeps thread)
+ffmcp thread delete conversation1    # Delete thread entirely
+```
+
+**Key Points:**
+- Chat threads are **independent** from agent threads
+- Each thread maintains its own conversation history
+- System messages are saved to the thread on first use
+- Active thread is used automatically if no thread is specified
+
+### Agent Threads
+
+Agent threads are tied to specific agents and maintain conversation history for agent runs:
+
+```bash
+# Create an agent
+ffmcp agent create myagent -p openai -m gpt-4o-mini -i "You are helpful"
+
+# Create a thread for the agent
+ffmcp agent thread create myagent conversation1
+
+# Set it as active (optional - agent run uses active thread automatically)
+ffmcp agent thread use myagent conversation1
+
+# Run agent with conversation history
+ffmcp agent run "Plan a trip to Paris" --agent myagent
+ffmcp agent run "Add a day in London" --agent myagent  # Remembers!
+
+# Or specify thread explicitly
+ffmcp agent run "Start new topic" --agent myagent --thread conversation2
+
+# Manage agent threads
+ffmcp agent thread list myagent           # List threads for agent
+ffmcp agent thread current myagent        # Show active thread
+ffmcp agent thread clear myagent conv1    # Clear messages
+ffmcp agent thread delete myagent conv1   # Delete thread
+```
+
+**Key Points:**
+- Agent threads are **tied to specific agents**
+- Each agent can have multiple threads
+- Each agent has its own active thread
+- Tool calls and actions are saved to the thread
+- Threads work seamlessly with agent actions (web fetch, image generation, etc.)
+
+### When to Use Threads
+
+**Use Chat Threads when:**
+- You want simple conversation history with the `chat` command
+- You're switching between different providers/models
+- You don't need agent features (actions, tools, etc.)
+- You want lightweight conversation management
+
+**Use Agent Threads when:**
+- You're using agents with actions and tools
+- You want conversation history tied to a specific agent configuration
+- You need multiple conversation contexts per agent
+- You want to leverage agent capabilities (web search, image generation, etc.)
+
+### Thread Management Commands
+
+**Chat Threads:**
+```bash
+ffmcp thread create <name>      # Create thread
+ffmcp thread list               # List all threads
+ffmcp thread use <name>         # Set active thread
+ffmcp thread current            # Show active thread
+ffmcp thread clear <name>       # Clear messages
+ffmcp thread delete <name>      # Delete thread
+```
+
+**Agent Threads:**
+```bash
+ffmcp agent thread create <agent> <name>    # Create thread
+ffmcp agent thread list <agent>              # List threads
+ffmcp agent thread use <agent> <name>        # Set active thread
+ffmcp agent thread current <agent>           # Show active thread
+ffmcp agent thread clear <agent> <name>      # Clear messages
+ffmcp agent thread delete <agent> <name>    # Delete thread
+```
+
+### Example Workflows
+
+**Chat Thread Workflow:**
+```bash
+# Create and use a thread
+ffmcp thread create project-planning
+ffmcp thread use project-planning
+
+# Have a conversation
+ffmcp chat "I want to build a web app" -p openai
+ffmcp chat "What technologies should I use?" -p openai
+ffmcp chat "Tell me more about React" -p openai
+
+# Switch to different thread
+ffmcp thread create personal-chat
+ffmcp thread use personal-chat
+ffmcp chat "What's the weather like?" -p openai  # Fresh conversation
+```
+
+**Agent Thread Workflow:**
+```bash
+# Create agent and thread
+ffmcp agent create assistant -p openai -m gpt-4o-mini -i "You are helpful"
+ffmcp agent thread create assistant project-a
+ffmcp agent thread use assistant project-a
+
+# Run agent with conversation history
+ffmcp agent run "Research React best practices" --agent assistant
+ffmcp agent run "Find examples of React hooks" --agent assistant  # Uses web_fetch action
+
+# Create another thread for different project
+ffmcp agent thread create assistant project-b
+ffmcp agent thread use assistant project-b
+ffmcp agent run "Research Python frameworks" --agent assistant  # Fresh conversation
+```
+
 ## Zep Memory (Brains)
+
+**Note:** Brains (Zep) are separate from threads. Threads maintain conversation history locally, while Brains provide advanced memory features including semantic search, document storage, and graph relationships. You can use both together - agents can have threads for conversation history AND a brain for long-term memory and document search.
 
 ### Setup
 

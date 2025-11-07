@@ -12,15 +12,43 @@ Your `ffmcp` tool is now installed and ready to use.
 source venv/bin/activate
 ```
 
-### 2. Configure Your OpenAI API Key
+### 2. Configure Your API Keys
 
 ```bash
+# OpenAI
 ffmcp config -p openai -k YOUR_OPENAI_API_KEY
+
+# Anthropic Claude
+ffmcp config -p anthropic -k YOUR_ANTHROPIC_API_KEY
+
+# Google Gemini
+ffmcp config -p gemini -k YOUR_GEMINI_API_KEY
+
+# Groq (ultra-fast)
+ffmcp config -p groq -k YOUR_GROQ_API_KEY
+
+# DeepSeek
+ffmcp config -p deepseek -k YOUR_DEEPSEEK_API_KEY
+
+# Mistral AI
+ffmcp config -p mistral -k YOUR_MISTRAL_API_KEY
+
+# Together AI
+ffmcp config -p together -k YOUR_TOGETHER_API_KEY
+
+# Cohere
+ffmcp config -p cohere -k YOUR_COHERE_API_KEY
+
+# Perplexity AI
+ffmcp config -p perplexity -k YOUR_PERPLEXITY_API_KEY
 ```
 
-Or set it as an environment variable:
+Or use environment variables:
 ```bash
 export OPENAI_API_KEY=your_key_here
+export ANTHROPIC_API_KEY=your_key_here
+export GEMINI_API_KEY=your_key_here
+# ... etc
 ```
 
 ### 3. (Optional) Configure Zep for Brains/Memory
@@ -43,8 +71,14 @@ ffmcp config -p zep -k YOUR_ZEP_API_KEY
 ffmcp --help
 ffmcp openai --help
 
-# Test text generation
+# Test text generation with different providers
 ffmcp generate "Hello, world!" -p openai
+ffmcp generate "Hello, world!" -p gemini
+ffmcp generate "Hello, world!" -p groq
+ffmcp generate "Hello, world!" -p anthropic
+
+# List all available providers
+ffmcp providers
 
 # Test OpenAI features
 ffmcp openai image "A beautiful sunset"
@@ -79,16 +113,18 @@ ffmcp openai embed "Sample text"
 ## Example Workflow
 
 ```bash
-# 1. Generate text
+# 1. Generate text with different providers
 ffmcp generate "Write a haiku about coding" -p openai
+ffmcp generate "Write a haiku about coding" -p gemini
+ffmcp generate "Write a haiku about coding" -p groq -s  # Stream with Groq (very fast!)
 
-# 2. Generate an image
+# 2. Generate an image (OpenAI only)
 ffmcp openai image "A futuristic AI laboratory"
 
-# 3. Create embeddings
+# 3. Create embeddings (OpenAI only)
 ffmcp openai embed "Machine learning is fascinating" -o embeddings.json
 
-# 4. Transcribe audio (if you have an audio file)
+# 4. Transcribe audio (OpenAI only)
 ffmcp openai transcribe audio.mp3 -o transcript.txt
 
 # 5. Use Brain memory (Zep)
@@ -96,6 +132,9 @@ ffmcp brain create mybrain
 ffmcp brain memory add --role user --role-type user --content "Remember: favorite color is blue"
 ffmcp brain memory get
 ffmcp brain memory get --brain mybrain --session session-123
+
+# 6. Try Perplexity for web-search enabled queries
+ffmcp generate "What are the latest developments in AI?" -p perplexity
 ```
 
 ## Troubleshooting

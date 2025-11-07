@@ -5,7 +5,7 @@
 ## Features
 
 - 🚀 **Unified CLI**: Single command-line interface for multiple AI providers
-- 🔌 **Modular**: Easy to add new AI providers
+- 🔌 **9 AI Providers**: OpenAI, Anthropic, Google Gemini, Groq, DeepSeek, Mistral AI, Together AI, Cohere, and Perplexity
 - 📝 **Simple**: Works just like ffmpeg - simple, powerful, composable
 - 🔧 **Configurable**: Manage API keys and settings easily
 - 📊 **Streaming**: Real-time streaming support for responses
@@ -46,9 +46,37 @@ ffmcp config -p openai -k YOUR_OPENAI_API_KEY
 # Set Anthropic API key
 ffmcp config -p anthropic -k YOUR_ANTHROPIC_API_KEY
 
-# Or use environment variables
+# Set Google Gemini API key
+ffmcp config -p gemini -k YOUR_GEMINI_API_KEY
+
+# Set Groq API key
+ffmcp config -p groq -k YOUR_GROQ_API_KEY
+
+# Set DeepSeek API key
+ffmcp config -p deepseek -k YOUR_DEEPSEEK_API_KEY
+
+# Set Mistral AI API key
+ffmcp config -p mistral -k YOUR_MISTRAL_API_KEY
+
+# Set Together AI API key
+ffmcp config -p together -k YOUR_TOGETHER_API_KEY
+
+# Set Cohere API key
+ffmcp config -p cohere -k YOUR_COHERE_API_KEY
+
+# Set Perplexity API key
+ffmcp config -p perplexity -k YOUR_PERPLEXITY_API_KEY
+
+# Or use environment variables (provider name in uppercase)
 export OPENAI_API_KEY=your_key
 export ANTHROPIC_API_KEY=your_key
+export GEMINI_API_KEY=your_key
+export GROQ_API_KEY=your_key
+export DEEPSEEK_API_KEY=your_key
+export MISTRAL_API_KEY=your_key
+export TOGETHER_API_KEY=your_key
+export COHERE_API_KEY=your_key
+export PERPLEXITY_API_KEY=your_key
 ```
 
 ### 2. Generate Text
@@ -59,6 +87,13 @@ ffmcp generate "Write a haiku about coding"
 
 # With specific provider and model
 ffmcp generate "Explain quantum computing" -p openai -m gpt-4
+ffmcp generate "Explain quantum computing" -p gemini -m gemini-1.5-pro
+ffmcp generate "Explain quantum computing" -p groq -m llama-3.1-70b-versatile
+ffmcp generate "Explain quantum computing" -p deepseek -m deepseek-chat
+ffmcp generate "Explain quantum computing" -p mistral -m mistral-large-latest
+ffmcp generate "Explain quantum computing" -p together -m meta-llama/Llama-3-70b-chat-hf
+ffmcp generate "Explain quantum computing" -p cohere -m command-r-plus
+ffmcp generate "Explain quantum computing" -p perplexity -m llama-3.1-sonar-large-128k-online
 
 # Stream the response
 ffmcp generate "Tell me a story" -s
@@ -83,8 +118,10 @@ ffmcp chat "What is 2+2?" -s "You are a helpful math tutor"
 ### 4. Agents
 
 ```bash
-# Create an agent (OpenAI provider, default actions enabled)
+# Create an agent (any provider, default actions enabled)
 ffmcp agent create myagent -p openai -m gpt-4o-mini -i "You are a helpful assistant" --brain mybrain
+ffmcp agent create gemini-agent -p gemini -m gemini-2.0-flash-exp -i "You are a helpful assistant"
+ffmcp agent create groq-agent -p groq -m llama-3.1-70b-versatile -i "You are a helpful assistant"
 
 # List and select the active agent
 ffmcp agent list
@@ -237,6 +274,17 @@ ffmcp openai assistant upload document.pdf
 ffmcp providers
 ```
 
+This will show all available providers:
+- **openai** - OpenAI GPT models (GPT-4, GPT-3.5, DALL·E, Whisper, TTS, Embeddings)
+- **anthropic** - Anthropic Claude models (Claude 3.5 Sonnet, Claude 3 Opus, Claude 3 Haiku)
+- **gemini** - Google Gemini models (Gemini 2.0 Flash, Gemini 1.5 Pro, Gemini 1.5 Flash)
+- **groq** - Groq models (Llama 3.1, Mixtral, Gemma) - Ultra-fast inference
+- **deepseek** - DeepSeek models (DeepSeek Chat, DeepSeek Coder) - OpenAI-compatible
+- **mistral** - Mistral AI models (Mistral Large, Mistral Medium, Pixtral)
+- **together** - Together AI models (Access to many open-source models like Llama, Mixtral, Qwen)
+- **cohere** - Cohere models (Command R+, Command R) - Enterprise-focused
+- **perplexity** - Perplexity AI models (Sonar Large, Sonar Pro) - Built-in web search
+
 ### 5. Daily Token Tracking
 
 ffmcp automatically tracks total tokens used per UTC day across supported providers (e.g., OpenAI, Anthropic). Totals are stored in `~/.ffmcp/tokens.json`.
@@ -245,8 +293,11 @@ ffmcp automatically tracks total tokens used per UTC day across supported provid
 # Show today's total token count (UTC day)
 ffmcp tokens
 
-# Filter by provider (openai or anthropic)
+# Filter by provider
 ffmcp tokens -p openai
+ffmcp tokens -p gemini
+ffmcp tokens -p groq
+# ... any provider name
 
 # Specify a date (UTC, YYYY-MM-DD)
 ffmcp tokens -d 2025-11-07
@@ -381,6 +432,40 @@ ffmcp openai image "$(cat summary.txt | head -c 100)"
 ffmcp openai embed "$(cat transcript.txt)" -o embeddings.json
 ```
 
+## Supported AI Providers
+
+ffmcp supports 9 major AI providers, each with their own strengths:
+
+| Provider | Models | Key Features | Best For |
+|----------|--------|-------------|----------|
+| **OpenAI** | GPT-4, GPT-3.5, DALL·E, Whisper | Full feature set (vision, images, audio, embeddings) | Comprehensive AI tasks |
+| **Anthropic** | Claude 3.5 Sonnet, Claude 3 Opus | Long context, high quality | Complex reasoning, long documents |
+| **Google Gemini** | Gemini 2.0 Flash, Gemini 1.5 Pro | Multimodal, fast | General purpose, vision tasks |
+| **Groq** | Llama 3.1, Mixtral, Gemma | Ultra-fast inference | Speed-critical applications |
+| **DeepSeek** | DeepSeek Chat, DeepSeek Coder | OpenAI-compatible, coding-focused | Code generation, technical tasks |
+| **Mistral AI** | Mistral Large, Pixtral | High quality, vision support | Enterprise applications |
+| **Together AI** | Llama, Mixtral, Qwen, many more | Access to many open-source models | Experimentation, cost-effective |
+| **Cohere** | Command R+, Command R | Enterprise features, RAG | Business applications, embeddings |
+| **Perplexity** | Sonar Large, Sonar Pro | Built-in web search, citations | Research, real-time information |
+
+### Default Models
+
+Each provider has a sensible default model:
+- OpenAI: `gpt-4o-mini`
+- Anthropic: `claude-3-5-sonnet-20241022`
+- Gemini: `gemini-2.0-flash-exp`
+- Groq: `llama-3.1-70b-versatile`
+- DeepSeek: `deepseek-chat`
+- Mistral: `mistral-large-latest`
+- Together: `meta-llama/Llama-3-70b-chat-hf`
+- Cohere: `command-r-plus`
+- Perplexity: `llama-3.1-sonar-large-128k-online`
+
+You can override defaults with the `-m` flag or set a custom default:
+```bash
+ffmcp config set-default-model gemini gemini-1.5-pro
+```
+
 ## Architecture
 
 ```
@@ -392,8 +477,15 @@ ffmcp/
 │   └── providers/
 │       ├── __init__.py
 │       ├── base.py         # Base provider interface
-│       ├── openai_provider.py  # Full OpenAI implementation
-│       └── anthropic_provider.py
+│       ├── openai_provider.py      # Full OpenAI implementation
+│       ├── anthropic_provider.py   # Anthropic Claude
+│       ├── gemini_provider.py      # Google Gemini
+│       ├── groq_provider.py        # Groq
+│       ├── deepseek_provider.py    # DeepSeek
+│       ├── mistral_provider.py     # Mistral AI
+│       ├── together_provider.py    # Together AI
+│       ├── cohere_provider.py      # Cohere
+│       └── perplexity_provider.py  # Perplexity AI
 ├── setup.py
 ├── requirements.txt
 └── README.md
@@ -437,13 +529,21 @@ class CohereProvider(BaseProvider):
 ## Roadmap
 
 - [x] OpenAI full feature support
-- [ ] More AI providers (Google Gemini, Cohere, etc.)
+- [x] Multiple AI providers (9 providers supported!)
 - [x] Image generation support
 - [x] Audio transcription/translation
 - [ ] Batch processing
 - [ ] Plugin system for custom providers
 - [ ] Python API for programmatic use
 - [x] Advanced features (function calling, tool use, etc.)
+- [ ] Provider-specific features (Gemini vision, Cohere RAG, etc.)
+
+## Provider Documentation
+
+For detailed information about each provider, see [PROVIDERS.md](PROVIDERS.md) (if available) or run:
+```bash
+ffmcp providers
+```
 
 ## Contributing
 

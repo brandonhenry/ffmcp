@@ -4,11 +4,25 @@ import logging
 from ffmcp.providers.base import BaseProvider
 from ffmcp.providers.openai_provider import OpenAIProvider
 from ffmcp.providers.anthropic_provider import AnthropicProvider
+from ffmcp.providers.gemini_provider import GeminiProvider
+from ffmcp.providers.groq_provider import GroqProvider
+from ffmcp.providers.deepseek_provider import DeepSeekProvider
+from ffmcp.providers.mistral_provider import MistralProvider
+from ffmcp.providers.together_provider import TogetherProvider
+from ffmcp.providers.cohere_provider import CohereProvider
+from ffmcp.providers.perplexity_provider import PerplexityProvider
 
 
 AVAILABLE_PROVIDERS: Dict[str, Type[BaseProvider]] = {
     'openai': OpenAIProvider,
     'anthropic': AnthropicProvider,
+    'gemini': GeminiProvider,
+    'groq': GroqProvider,
+    'deepseek': DeepSeekProvider,
+    'mistral': MistralProvider,
+    'together': TogetherProvider,
+    'cohere': CohereProvider,
+    'perplexity': PerplexityProvider,
 }
 
 

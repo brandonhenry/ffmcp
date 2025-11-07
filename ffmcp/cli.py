@@ -84,7 +84,7 @@ def cli():
 
 @cli.command()
 @click.argument('prompt', required=False)
-@click.option('--provider', '-p', default='openai', help='AI provider to use (openai, anthropic)')
+@click.option('--provider', '-p', default='openai', help='AI provider to use (openai, anthropic, gemini, groq, deepseek, mistral, together, cohere, perplexity)')
 @click.option('--model', '-m', help='Model to use (overrides default)')
 @click.option('--temperature', '-t', type=float, help='Temperature for generation')
 @click.option('--max-tokens', type=int, help='Maximum tokens to generate')
@@ -180,7 +180,7 @@ def generate(prompt: Optional[str], provider: str, model: Optional[str],
 
 @cli.command()
 @click.argument('prompt')
-@click.option('--provider', '-p', default='openai', help='AI provider to use')
+@click.option('--provider', '-p', default='openai', help='AI provider to use (openai, anthropic, gemini, groq, deepseek, mistral, together, cohere, perplexity)')
 @click.option('--model', '-m', help='Model to use')
 @click.option('--system', '-s', help='System message')
 def chat(prompt: str, provider: str, model: Optional[str], system: Optional[str]):
@@ -216,7 +216,7 @@ def providers():
 
 
 @cli.command()
-@click.option('--provider', '-p', help='Filter by provider (e.g., openai, anthropic)')
+@click.option('--provider', '-p', help='Filter by provider (e.g., openai, anthropic, gemini, groq, deepseek, mistral, together, cohere, perplexity)')
 @click.option('--date', '-d', help='UTC date YYYY-MM-DD (default: today)')
 def tokens(provider: Optional[str], date: Optional[str]):
     """Show cumulative token usage for the given UTC day (integer)."""
@@ -962,7 +962,7 @@ def agent():
 
 @agent.command('create')
 @click.argument('name')
-@click.option('--provider', '-p', default='openai', type=click.Choice(['openai', 'anthropic']), help='Provider name')
+@click.option('--provider', '-p', default='openai', type=click.Choice(['openai', 'anthropic', 'gemini', 'groq', 'deepseek', 'mistral', 'together', 'cohere', 'perplexity']), help='Provider name')
 @click.option('--model', '-m', required=True, help='Default model for this agent')
 @click.option('--instructions', '-i', help='System prompt instructions')
 @click.option('--brain', help='Optional brain name for memory/search')

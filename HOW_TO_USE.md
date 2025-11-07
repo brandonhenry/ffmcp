@@ -7,13 +7,26 @@
 source venv/bin/activate
 ```
 
-### 2. Set Your API Key
+### 2. Set Your API Keys
 ```bash
 # Set OpenAI API key
 ffmcp config -p openai -k sk-your-openai-api-key-here
 
-# Or use environment variable
+# Set other providers
+ffmcp config -p anthropic -k sk-ant-your-anthropic-key
+ffmcp config -p gemini -k your-gemini-api-key
+ffmcp config -p groq -k your-groq-api-key
+ffmcp config -p deepseek -k your-deepseek-api-key
+ffmcp config -p mistral -k your-mistral-api-key
+ffmcp config -p together -k your-together-api-key
+ffmcp config -p cohere -k your-cohere-api-key
+ffmcp config -p perplexity -k your-perplexity-api-key
+
+# Or use environment variables
 export OPENAI_API_KEY=sk-your-openai-api-key-here
+export ANTHROPIC_API_KEY=sk-ant-your-anthropic-key
+export GEMINI_API_KEY=your-gemini-api-key
+# ... etc
 ```
 
 ## Basic Text Generation
@@ -360,13 +373,52 @@ ffmcp generate "$PROMPT" -p openai -s
 ```bash
 -p openai      # Use OpenAI (default)
 -p anthropic   # Use Anthropic Claude
+-p gemini      # Use Google Gemini
+-p groq        # Use Groq (ultra-fast)
+-p deepseek    # Use DeepSeek
+-p mistral     # Use Mistral AI
+-p together    # Use Together AI
+-p cohere      # Use Cohere
+-p perplexity  # Use Perplexity AI (with web search)
 ```
 
 ### Model Selection
 ```bash
+# OpenAI
 -m gpt-4o-mini           # OpenAI default
 -m gpt-4o                # More capable
--m claude-3-5-sonnet     # Anthropic
+
+# Anthropic
+-m claude-3-5-sonnet     # Anthropic default
+-m claude-3-opus         # Most capable
+
+# Gemini
+-m gemini-2.0-flash-exp   # Gemini default
+-m gemini-1.5-pro        # More capable
+
+# Groq
+-m llama-3.1-70b-versatile  # Groq default
+-m mixtral-8x7b-32768    # Alternative
+
+# DeepSeek
+-m deepseek-chat         # DeepSeek default
+-m deepseek-coder        # Code-focused
+
+# Mistral
+-m mistral-large-latest  # Mistral default
+-m pixtral-large-latest  # Vision-capable
+
+# Together
+-m meta-llama/Llama-3-70b-chat-hf  # Together default
+-m mistralai/Mixtral-8x7B-Instruct-v0.1  # Alternative
+
+# Cohere
+-m command-r-plus        # Cohere default
+-m command-r             # Alternative
+
+# Perplexity
+-m llama-3.1-sonar-large-128k-online  # Perplexity default
+-m sonar-pro             # Alternative
 ```
 
 ### Output Control

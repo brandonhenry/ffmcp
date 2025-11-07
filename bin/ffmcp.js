@@ -16,7 +16,24 @@ const args = process.argv.slice(2);
 // Third try: check if ffmcp is available in PATH (but not this npm wrapper)
 
 function findPythonFfmcp() {
-  // Check if python3 -m ffmcp.cli works (most reliable)
+  const os = require('os');
+  const path = require('path');
+  const fs = require('fs');
+  
+  // First check virtual environment (created by postinstall)
+  const venvPath = path.join(os.homedir(), '.ffmcp-venv');
+  const venvPython = path.join(venvPath, process.platform === 'win32' ? 'Scripts\\python.exe' : 'bin/python');
+  
+  if (fs.existsSync(venvPython)) {
+    try {
+      execSync(`"${venvPython}" -m ffmcp.cli --version 2>&1`, { stdio: 'pipe', timeout: 2000 });
+      return [venvPython, ['-m', 'ffmcp.cli', ...args]];
+    } catch (e) {
+      // Venv exists but ffmcp not installed, continue to other options
+    }
+  }
+  
+  // Check if python3 -m ffmcp.cli works (system install)
   try {
     execSync('python3 -m ffmcp.cli --version 2>&1', { stdio: 'pipe', timeout: 2000 });
     return ['python3', ['-m', 'ffmcp.cli', ...args]];

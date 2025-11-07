@@ -37,36 +37,91 @@ try {
   }
 }
 
-// Check if Python ffmcp is already installed
+// Use virtual environment approach to avoid externally-managed-environment error
+const os = require('os');
+const venvPath = path.join(os.homedir(), '.ffmcp-venv');
+const venvPython = path.join(venvPath, process.platform === 'win32' ? 'Scripts\\python.exe' : 'bin/python');
+
+// Check if Python ffmcp is already installed (either in venv or system)
+let ffmcpInstalled = false;
 try {
   execSync(`${pythonCmd} -m ffmcp.cli --version 2>&1`, { stdio: 'pipe', timeout: 2000 });
-  console.log('✅ Python ffmcp is already installed.');
-  process.exit(0);
+  ffmcpInstalled = true;
 } catch (e) {
-  // Not installed, continue with installation
+  // Check venv
+  if (fs.existsSync(venvPython)) {
+    try {
+      execSync(`"${venvPython}" -m ffmcp.cli --version 2>&1`, { stdio: 'pipe', timeout: 2000 });
+      ffmcpInstalled = true;
+    } catch (e2) {
+      // Not in venv either
+    }
+  }
 }
 
-// Install Python package with all dependencies
+if (ffmcpInstalled) {
+  console.log('✅ Python ffmcp is already installed.');
+  process.exit(0);
+}
+
+// Create virtual environment if it doesn't exist
+if (!fs.existsSync(venvPath)) {
+  console.log(`   Creating virtual environment at ${venvPath}...`);
+  try {
+    execSync(`${pythonCmd} -m venv "${venvPath}"`, { stdio: 'pipe' });
+  } catch (error) {
+    console.error('❌ Error creating virtual environment:');
+    console.error(error.message);
+    console.error('');
+    console.error('Trying fallback: installing with --break-system-packages flag...');
+    
+    // Fallback: try with --break-system-packages and --user
+    try {
+      const pipFlags = '--user --break-system-packages --quiet --disable-pip-version-check';
+      execSync(`${pythonCmd} -m pip install -e "${packageDir}" ${pipFlags}`, {
+        stdio: 'pipe',
+        cwd: packageDir,
+        env: { ...process.env, PIP_DISABLE_PIP_VERSION_CHECK: '1' }
+      });
+      
+      const requirementsFile = path.join(packageDir, 'requirements.txt');
+      if (fs.existsSync(requirementsFile)) {
+        execSync(`${pythonCmd} -m pip install -r "${requirementsFile}" ${pipFlags}`, {
+          stdio: 'pipe',
+          cwd: packageDir,
+          env: { ...process.env, PIP_DISABLE_PIP_VERSION_CHECK: '1' }
+        });
+      }
+      
+      console.log('✅ Python ffmcp installed successfully (using --break-system-packages)!');
+      process.exit(0);
+    } catch (fallbackError) {
+      console.error('❌ Fallback installation also failed.');
+      console.error('Please install manually or use pipx:');
+      console.error('  brew install pipx');
+      console.error('  pipx install git+https://github.com/brandonhenry/ffmcp.git');
+      process.exit(1);
+    }
+  }
+}
+
+// Install into virtual environment
 try {
   console.log(`   Installing Python package and all AI provider dependencies...`);
   
-  // Use --user flag to avoid externally-managed-environment error on macOS
-  // This installs to user site-packages which is safe and doesn't break system Python
-  const pipFlags = '--user --quiet --disable-pip-version-check';
-  
-  // First install the package itself in editable mode
-  const installPackageCmd = `${pythonCmd} -m pip install -e "${packageDir}" ${pipFlags}`;
+  // Install package
+  const installPackageCmd = `"${venvPython}" -m pip install -e "${packageDir}" --quiet --disable-pip-version-check`;
   execSync(installPackageCmd, {
     stdio: 'pipe',
     cwd: packageDir,
     env: { ...process.env, PIP_DISABLE_PIP_VERSION_CHECK: '1' }
   });
   
-  // Then install all dependencies from requirements.txt
+  // Install dependencies
   const requirementsFile = path.join(packageDir, 'requirements.txt');
   if (fs.existsSync(requirementsFile)) {
     console.log(`   Installing AI provider dependencies (OpenAI, Anthropic, Gemini, Groq, etc.)...`);
-    const installDepsCmd = `${pythonCmd} -m pip install -r "${requirementsFile}" ${pipFlags}`;
+    const installDepsCmd = `"${venvPython}" -m pip install -r "${requirementsFile}" --quiet --disable-pip-version-check`;
     execSync(installDepsCmd, {
       stdio: 'pipe',
       cwd: packageDir,
@@ -75,15 +130,14 @@ try {
   }
   
   console.log('✅ Python ffmcp and all AI provider dependencies installed successfully!');
+  console.log(`   Virtual environment: ${venvPath}`);
   
   // Verify installation
   try {
-    execSync(`${pythonCmd} -m ffmcp.cli --version 2>&1`, { stdio: 'pipe', timeout: 2000 });
+    execSync(`"${venvPython}" -m ffmcp.cli --version 2>&1`, { stdio: 'pipe', timeout: 2000 });
     console.log('✅ Installation verified.');
   } catch (e) {
     console.warn('⚠️  Warning: Installation completed but verification failed.');
-    console.warn('   You may need to restart your terminal or run:');
-    console.warn(`   ${pythonCmd} -m pip install -e "${packageDir}"`);
   }
   
 } catch (error) {
@@ -91,15 +145,10 @@ try {
   console.error(error.message);
   console.error('');
   console.error('You can install it manually:');
-  console.error(`  cd ${packageDir}`);
-  console.error(`  ${pythonCmd} -m pip install -e . --user`);
-  console.error(`  ${pythonCmd} -m pip install -r requirements.txt --user`);
-  console.error('');
-  console.error('Or install from source:');
-  console.error('  git clone https://github.com/brandonhenry/ffmcp.git');
-  console.error('  cd ffmcp');
-  console.error(`  ${pythonCmd} -m pip install -e . --user`);
-  console.error(`  ${pythonCmd} -m pip install -r requirements.txt --user`);
+  console.error(`  ${pythonCmd} -m venv ~/.ffmcp-venv`);
+  console.error(`  source ~/.ffmcp-venv/bin/activate`);
+  console.error(`  pip install -e "${packageDir}"`);
+  console.error(`  pip install -r "${path.join(packageDir, 'requirements.txt')}"`);
   process.exit(1);
 }
 

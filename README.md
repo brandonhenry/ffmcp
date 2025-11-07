@@ -10,6 +10,7 @@
 - 🔧 **Configurable**: Manage API keys and settings easily
 - 📊 **Streaming**: Real-time streaming support for responses
 - 🎨 **Full OpenAI Support**: All OpenAI features including vision, images, audio, embeddings, and assistants
+- 🧠 **Memory with Zep (Brains)**: Create brains, store/retrieve chat memory, collections, and graph
 
 ## Installation
 
@@ -211,6 +212,90 @@ ffmcp openai assistant upload document.pdf
 
 ```bash
 ffmcp providers
+```
+
+### 5. Daily Token Tracking
+
+ffmcp automatically tracks total tokens used per UTC day across supported providers (e.g., OpenAI, Anthropic). Totals are stored in `~/.ffmcp/tokens.json`.
+
+```bash
+# Show today's total token count (UTC day)
+ffmcp tokens
+
+# Filter by provider (openai or anthropic)
+ffmcp tokens -p openai
+
+# Specify a date (UTC, YYYY-MM-DD)
+ffmcp tokens -d 2025-11-07
+```
+
+Notes:
+- The total is best-effort for streaming responses and depends on provider SDK support for usage in stream events.
+- Token accounting is updated automatically on each command invocation that returns usage from the provider.
+
+## Zep Memory (Brains)
+
+### Setup
+
+```bash
+# Configure Zep (Cloud)
+export ZEP_CLOUD_API_KEY=your_key
+
+# Optional for self-hosted
+export ZEP_BASE_URL=http://localhost:8000
+
+# Or persist settings
+ffmcp config -p zep -k YOUR_ZEP_API_KEY
+```
+
+### Brains
+
+```bash
+# Create and use a brain
+ffmcp brain create mybrain
+ffmcp brain current
+ffmcp brain list
+ffmcp brain use mybrain
+```
+
+### Memory
+
+```bash
+# Add a message to memory
+ffmcp brain memory add --role user --role-type user --content "Who was Octavia Butler?"
+
+# Get memory context
+ffmcp brain memory get
+
+# Search memory
+ffmcp brain memory search "Octavia"
+
+# Clear memory for session
+ffmcp brain memory clear
+```
+
+### Collections & Documents
+
+```bash
+# Create a namespaced collection under the brain
+ffmcp brain collection create knowledge --description "KB for mybrain"
+
+# Add a document
+ffmcp brain document add knowledge --text "Zep is a memory platform for LLM apps" --id doc1
+
+# Search documents
+ffmcp brain document search knowledge "memory platform"
+```
+
+### Graph (Zep Cloud)
+
+```bash
+# Add JSON data to user graph
+echo '{"projects": {"alpha": {"status": "in progress"}}}' | \
+  ffmcp brain graph add user-123 --type json --input -
+
+# Get user graph
+ffmcp brain graph get user-123
 ```
 
 ## Usage Examples

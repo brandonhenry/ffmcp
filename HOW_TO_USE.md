@@ -216,6 +216,72 @@ ffmcp openai assistant messages $(cat thread_id.txt)
 ffmcp openai assistant upload document.pdf
 ```
 
+## 🧠 Brains (Zep Memory)
+
+### Setup Zep
+```bash
+# Zep Cloud (recommended)
+export ZEP_CLOUD_API_KEY=your_key
+
+# Self-hosted Zep (optional)
+export ZEP_BASE_URL=http://localhost:8000
+
+# Or persist the API key
+ffmcp config -p zep -k YOUR_ZEP_API_KEY
+```
+
+### Create and Use a Brain
+```bash
+# Create a brain and set it active
+ffmcp brain create mybrain
+
+# Show active brain
+ffmcp brain current
+
+# List brains
+ffmcp brain list
+
+# Switch active brain
+ffmcp brain use mybrain
+```
+
+### Chat Memory
+```bash
+# Add a message to memory (session defaults to brain name)
+ffmcp brain memory add --role user --role-type user --content "Who was Octavia Butler?"
+
+# Get memory context
+ffmcp brain memory get
+
+# Semantic search over memory
+ffmcp brain memory search "Octavia"
+
+# Clear memory for the session
+ffmcp brain memory clear
+```
+
+### Collections & Documents
+```bash
+# Create a collection (namespaced as mybrain::knowledge)
+ffmcp brain collection create knowledge --description "KB for mybrain"
+
+# Add a document
+ffmcp brain document add knowledge --text "Zep is a memory platform for LLM apps" --id doc1
+
+# Search documents
+ffmcp brain document search knowledge "memory platform"
+```
+
+### Graph (Zep Cloud only)
+```bash
+# Add JSON data to a user's graph
+echo '{"projects":{"alpha":{"status":"in progress"}}}' | \
+  ffmcp brain graph add user-123 --type json --input -
+
+# Get graph data
+ffmcp brain graph get user-123
+```
+
 ## Real-World Examples
 
 ### Example 1: Transcribe and Summarize a Meeting

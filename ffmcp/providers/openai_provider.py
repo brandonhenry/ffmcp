@@ -40,6 +40,19 @@ class OpenAIProvider(BaseProvider):
             temperature=temperature,
             max_tokens=max_tokens,
         )
+        # Record token usage if available
+        try:
+            usage = getattr(response, 'usage', None)
+            total = getattr(usage, 'total_tokens', None) if usage else None
+            if total is None and usage:
+                # Fallback: sum prompt + completion
+                pt = getattr(usage, 'prompt_tokens', 0)
+                ct = getattr(usage, 'completion_tokens', 0)
+                total = (pt or 0) + (ct or 0)
+            if total:
+                self.config.add_token_usage(self.get_provider_name(), int(total))
+        except Exception:
+            pass
         return response.choices[0].message.content
     
     def generate_stream(self, prompt: str, **kwargs) -> Iterator[str]:
@@ -56,9 +69,23 @@ class OpenAIProvider(BaseProvider):
             stream=True,
         )
         
+        total_tokens_detected = None
         for chunk in stream:
             if chunk.choices[0].delta.content:
                 yield chunk.choices[0].delta.content
+            # Best-effort: capture usage when present on a chunk (SDK-dependent)
+            try:
+                usage = getattr(chunk, 'usage', None)
+                if usage and getattr(usage, 'total_tokens', None) is not None:
+                    total_tokens_detected = int(usage.total_tokens)
+            except Exception:
+                pass
+        # After stream ends, record usage if we saw it
+        if total_tokens_detected:
+            try:
+                self.config.add_token_usage(self.get_provider_name(), total_tokens_detected)
+            except Exception:
+                pass
     
     def chat(self, messages: List[Dict[str, str]], **kwargs) -> str:
         """Chat with OpenAI"""
@@ -81,6 +108,18 @@ class OpenAIProvider(BaseProvider):
             params['tool_choice'] = tool_choice
         
         response = self.client.chat.completions.create(**params)
+        # Record token usage if available
+        try:
+            usage = getattr(response, 'usage', None)
+            total = getattr(usage, 'total_tokens', None) if usage else None
+            if total is None and usage:
+                pt = getattr(usage, 'prompt_tokens', 0)
+                ct = getattr(usage, 'completion_tokens', 0)
+                total = (pt or 0) + (ct or 0)
+            if total:
+                self.config.add_token_usage(self.get_provider_name(), int(total))
+        except Exception:
+            pass
         return response.choices[0].message.content
     
     # ========== Vision / Image Understanding ==========
@@ -125,6 +164,18 @@ class OpenAIProvider(BaseProvider):
             params['max_tokens'] = max_tokens
         
         response = self.client.chat.completions.create(**params)
+        # Record token usage if available
+        try:
+            usage = getattr(response, 'usage', None)
+            total = getattr(usage, 'total_tokens', None) if usage else None
+            if total is None and usage:
+                pt = getattr(usage, 'prompt_tokens', 0)
+                ct = getattr(usage, 'completion_tokens', 0)
+                total = (pt or 0) + (ct or 0)
+            if total:
+                self.config.add_token_usage(self.get_provider_name(), int(total))
+        except Exception:
+            pass
         return response.choices[0].message.content
     
     # ========== Image Generation (DALL·E) ==========
@@ -302,7 +353,7 @@ class OpenAIProvider(BaseProvider):
         
         response = self.client.embeddings.create(**params)
         
-        return {
+        result = {
             'embeddings': [item.embedding for item in response.data],
             'embedding': response.data[0].embedding if len(response.data) == 1 else None,
             'model': response.model,
@@ -311,6 +362,14 @@ class OpenAIProvider(BaseProvider):
                 'total_tokens': response.usage.total_tokens,
             }
         }
+        # Count embedding tokens as well
+        try:
+            total = getattr(response.usage, 'total_tokens', None)
+            if total:
+                self.config.add_token_usage(self.get_provider_name(), int(total))
+        except Exception:
+            pass
+        return result
     
     # ========== Function Calling / Tools ==========
     
@@ -329,6 +388,18 @@ class OpenAIProvider(BaseProvider):
             temperature=temperature,
             max_tokens=max_tokens,
         )
+        # Record token usage if available
+        try:
+            usage = getattr(response, 'usage', None)
+            total = getattr(usage, 'total_tokens', None) if usage else None
+            if total is None and usage:
+                pt = getattr(usage, 'prompt_tokens', 0)
+                ct = getattr(usage, 'completion_tokens', 0)
+                total = (pt or 0) + (ct or 0)
+            if total:
+                self.config.add_token_usage(self.get_provider_name(), int(total))
+        except Exception:
+            pass
         
         message = response.choices[0].message
         result = {

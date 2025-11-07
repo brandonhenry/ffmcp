@@ -35,6 +35,15 @@ class AnthropicProvider(BaseProvider):
             temperature=temperature,
             messages=[{"role": "user", "content": prompt}],
         )
+        # Record token usage if available
+        try:
+            usage = getattr(response, 'usage', None)
+            if usage:
+                total = int(getattr(usage, 'input_tokens', 0) or 0) + int(getattr(usage, 'output_tokens', 0) or 0)
+                if total > 0:
+                    self.config.add_token_usage(self.get_provider_name(), total)
+        except Exception:
+            pass
         return response.content[0].text
     
     def generate_stream(self, prompt: str, **kwargs) -> Iterator[str]:
@@ -51,6 +60,16 @@ class AnthropicProvider(BaseProvider):
         ) as stream:
             for text in stream.text_stream:
                 yield text
+            # After streaming completes, try to fetch final message to get usage
+            try:
+                final = stream.get_final_response() if hasattr(stream, 'get_final_response') else getattr(stream, 'final_message', None)
+                usage = getattr(final, 'usage', None)
+                if usage:
+                    total = int(getattr(usage, 'input_tokens', 0) or 0) + int(getattr(usage, 'output_tokens', 0) or 0)
+                    if total > 0:
+                        self.config.add_token_usage(self.get_provider_name(), total)
+            except Exception:
+                pass
     
     def chat(self, messages: List[Dict[str, str]], **kwargs) -> str:
         """Chat with Anthropic"""
@@ -84,5 +103,14 @@ class AnthropicProvider(BaseProvider):
             messages=anthropic_messages,
             system=system_msg,
         )
+        # Record token usage if available
+        try:
+            usage = getattr(response, 'usage', None)
+            if usage:
+                total = int(getattr(usage, 'input_tokens', 0) or 0) + int(getattr(usage, 'output_tokens', 0) or 0)
+                if total > 0:
+                    self.config.add_token_usage(self.get_provider_name(), total)
+        except Exception:
+            pass
         return response.content[0].text
 

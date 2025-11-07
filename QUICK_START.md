@@ -23,6 +23,19 @@ Or set it as an environment variable:
 export OPENAI_API_KEY=your_key_here
 ```
 
+### 3. (Optional) Configure Zep for Brains/Memory
+
+```bash
+# Zep Cloud
+export ZEP_CLOUD_API_KEY=your_key
+
+# Self-hosted (if applicable)
+export ZEP_BASE_URL=http://localhost:8000
+
+# Or persist key
+ffmcp config -p zep -k YOUR_ZEP_API_KEY
+```
+
 ### 3. Test Basic Commands
 
 ```bash
@@ -56,6 +69,13 @@ ffmcp openai embed "Sample text"
 - `ffmcp openai tools` - Function calling
 - `ffmcp openai assistant` - Manage assistants
 
+### Brain (Zep) Commands
+- `ffmcp brain create|list|use|current|delete`
+- `ffmcp brain memory add|get|search|clear`
+- `ffmcp brain collection create|list`
+- `ffmcp brain document add|search|delete`
+- `ffmcp brain graph add|get` (Zep Cloud)
+
 ## Example Workflow
 
 ```bash
@@ -70,6 +90,11 @@ ffmcp openai embed "Machine learning is fascinating" -o embeddings.json
 
 # 4. Transcribe audio (if you have an audio file)
 ffmcp openai transcribe audio.mp3 -o transcript.txt
+
+# 5. Use Brain memory (Zep)
+ffmcp brain create mybrain
+ffmcp brain memory add --role user --role-type user --content "Remember: favorite color is blue"
+ffmcp brain memory get
 ```
 
 ## Troubleshooting

@@ -157,6 +157,8 @@
                     <li><a href="#text-generation">Text Generation</a></li>
                     <li><a href="#chat-mode">Chat Mode</a></li>
                     <li><a href="#openai-features">OpenAI Features</a></li>
+                    <li><a href="#brains">Brains (Zep Memory)</a></li>
+                    <li><a href="#brains-collections">Brains: Collections & Documents</a></li>
                     <li><a href="#real-world-examples">Real-World Examples</a></li>
                     <li><a href="#options-reference">Options Reference</a></li>
                     <li><a href="#troubleshooting">Troubleshooting</a></li>
@@ -238,6 +240,9 @@
 
                         <dt><code>ffmcp openai</code></dt>
                         <dd>Access OpenAI-specific features (vision, images, audio, etc.)</dd>
+
+                        <dt><code>ffmcp brain</code></dt>
+                        <dd>Manage brains, memory, collections, and graph (Zep)</dd>
                     </dl>
                 </div>
             </section>
@@ -460,6 +465,70 @@ EOF
 
 <span class="comment"># Upload a file for the assistant to use</span>
 <span class="prompt">$</span> ffmcp openai assistant upload document.pdf</code>
+                </div>
+            </section>
+
+            <section id="brains" class="command-section">
+                <h2>Brains (Zep Memory)</h2>
+
+                <h3>Setup Zep</h3>
+                <div class="command-example">
+<code><span class="comment"># Zep Cloud (recommended)</span>
+<span class="prompt">$</span> export ZEP_CLOUD_API_KEY=your_key
+
+<span class="comment"># Self-hosted Zep (optional)</span>
+<span class="prompt">$</span> export ZEP_BASE_URL=http://localhost:8000
+
+<span class="comment"># Or persist key</span>
+<span class="prompt">$</span> ffmcp config -p zep -k YOUR_ZEP_API_KEY</code>
+                </div>
+
+                <h3>Create and Use a Brain</h3>
+                <div class="command-example">
+<code><span class="prompt">$</span> ffmcp brain create mybrain
+<span class="prompt">$</span> ffmcp brain current
+<span class="prompt">$</span> ffmcp brain list
+<span class="prompt">$</span> ffmcp brain use mybrain</code>
+                </div>
+
+                <h3>Chat Memory</h3>
+                <div class="command-example">
+<code><span class="comment"># Add a message to memory</span>
+<span class="prompt">$</span> ffmcp brain memory add --role user --role-type user --content "Who was Octavia Butler?"
+
+<span class="comment"># Get memory context</span>
+<span class="prompt">$</span> ffmcp brain memory get
+
+<span class="comment"># Search memory</span>
+<span class="prompt">$</span> ffmcp brain memory search "Octavia"
+
+<span class="comment"># Clear memory</span>
+<span class="prompt">$</span> ffmcp brain memory clear</code>
+                </div>
+            </section>
+
+            <section id="brains-collections" class="command-section">
+                <h2>Brains: Collections & Documents</h2>
+
+                <h3>Create a Collection</h3>
+                <div class="command-example">
+<code><span class="prompt">$</span> ffmcp brain collection create knowledge --description "KB for mybrain"</code>
+                </div>
+
+                <h3>Add/Search/Delete Documents</h3>
+                <div class="command-example">
+<code><span class="prompt">$</span> ffmcp brain document add knowledge --text "Zep is a memory platform for LLM apps" --id doc1
+<span class="prompt">$</span> ffmcp brain document search knowledge "memory platform"
+<span class="prompt">$</span> ffmcp brain document delete knowledge --id doc1</code>
+                </div>
+
+                <h3>Graph (Zep Cloud)</h3>
+                <div class="command-example">
+<code><span class="comment"># Add JSON to user graph</span>
+<span class="prompt">$</span> echo '{"projects":{"alpha":{"status":"in progress"}}}' | ffmcp brain graph add user-123 --type json --input -
+
+<span class="comment"># Get graph</span>
+<span class="prompt">$</span> ffmcp brain graph get user-123</code>
                 </div>
             </section>
 

@@ -17,6 +17,7 @@
     "publish:major": "./scripts/publish.sh major",
     "publish:dry-run": "npm pack --dry-run",
     "sync-version": "./scripts/sync-version.sh",
+    "postinstall": "node scripts/postinstall.js",
     "prepublishOnly": "node -e \"console.log('Publishing ffmcp to npm...')\""
   },
   "keywords": [
@@ -48,7 +49,6 @@
   "engines": {
     "node": ">=14.0.0"
   },
-  "dependencies": {},
   "devDependencies": {
     "@types/node": "^20.0.0"
   },
@@ -56,6 +56,9 @@
     "index.js",
     "index.d.ts",
     "bin/",
-    "NPM_README.md"
+    "ffmcp/",
+    "setup.py",
+    "requirements.txt",
+    "scripts/postinstall.js"
   ]
 }

@@ -1,9 +1,8 @@
 # Files to exclude from npm package
 
-# Python files
-*.py
+# Python files (but keep source files for postinstall)
 *.pyc
-__pycache__/
+**/__pycache__/
 *.pyo
 *.pyd
 .Python
@@ -47,8 +46,6 @@ examples/
 # Config files
 .python-version
 .pylintrc
-setup.py
-requirements.txt
 
 # Netlify
 netlify.toml

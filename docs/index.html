@@ -54,6 +54,7 @@
                     <li>🎙️ <strong>TTS/Voiceover</strong> - Text-to-speech with ElevenLabs and FishAudio, voice cloning, voice configurations</li>
                     <li>🧠 <strong>Brains (Zep Memory)</strong> - Create brains, chat memory, collections, graph</li>
                     <li>🤖 <strong>Agents</strong> - Named agents with model, instructions, brain, properties, and actions (web, images, vision, embeddings)</li>
+                    <li>👥 <strong>Hierarchical Teams</strong> - Multi-agent collaboration with orchestrators, nested teams, and shared memory that flows up the hierarchy</li>
                 </ul>
             </section>
 
@@ -127,6 +128,16 @@ ffmcp brain memory get</code>
                         <code>ffmcp agent create myagent -p openai -m gpt-4o-mini -i "You are a helpful assistant" --brain mybrain<br>
 ffmcp agent use myagent<br>
 ffmcp agent run "Plan a 3-day trip to Paris"</code>
+                    </div>
+                </div>
+
+                <div class="example-box">
+                    <h3>Hierarchical Teams</h3>
+                    <div class="code-block">
+                        <code>ffmcp agent create ceo -p openai -m gpt-4o-mini -i "You orchestrate teams"<br>
+ffmcp agent action enable ceo delegate_to_agent<br>
+ffmcp team create org-team -o ceo -m researcher -m writer -b team-brain<br>
+ffmcp team run "Create a comprehensive report"</code>
                     </div>
                 </div>
 

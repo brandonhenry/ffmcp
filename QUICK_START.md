@@ -139,6 +139,22 @@ ffmcp openai embed "Sample text"
 - `ffmcp agent voice remove <agent>` - Remove agent voice
 - `ffmcp agent voice show <agent>` - Show agent voice
 
+### Agent Commands
+- `ffmcp agent create <name>` - Create an agent
+- `ffmcp agent list|use|show|delete` - Manage agents
+- `ffmcp agent run <prompt>` - Run an agent
+- `ffmcp agent action enable|disable` - Manage agent actions
+- `ffmcp agent thread create|list|use|clear|delete` - Manage agent threads
+
+### Team Commands (Hierarchical)
+- `ffmcp team create <name> -o <orchestrator>` - Create a team with orchestrator
+- `ffmcp team create <name> -o <orchestrator> -m <member> -s <sub-team> -b <brain>` - Create hierarchical team
+- `ffmcp team list|show|use|current|delete` - Manage teams
+- `ffmcp team add-member|remove-member` - Manage team members
+- `ffmcp team add-sub-team|remove-sub-team` - Manage sub-teams
+- `ffmcp team set-orchestrator` - Set team orchestrator
+- `ffmcp team run <task>` - Run a task with a team
+
 ### Brain (Zep) Commands
 - `ffmcp brain create|list|use|current|delete`
 - `ffmcp brain memory add|get|search|clear`
@@ -185,7 +201,23 @@ ffmcp agent thread use assistant project1
 ffmcp agent run "Plan a project" --agent assistant
 ffmcp agent run "Add details" --agent assistant  # Remembers conversation!
 
-# 9. Use voiceover/TTS
+# 9. Create hierarchical teams (agents working together)
+ffmcp agent create ceo -p openai -m gpt-4o-mini -i "You are a CEO orchestrating teams"
+ffmcp agent create researcher -p openai -m gpt-4o-mini -i "You are a researcher"
+ffmcp agent create writer -p openai -m gpt-4o-mini -i "You are a writer"
+ffmcp agent action enable ceo delegate_to_agent
+ffmcp brain create team-brain
+ffmcp team create org-team -o ceo -m researcher -m writer -b team-brain
+ffmcp team run "Create a comprehensive report" --team org-team
+
+# 10. Create nested teams (teams within teams)
+ffmcp agent create research-manager -p openai -m gpt-4o-mini -i "You manage research"
+ffmcp agent action enable research-manager delegate_to_agent
+ffmcp team create research-sub-team -o research-manager -m researcher -b team-brain
+ffmcp team create main-team -o ceo -s research-sub-team -m writer -b team-brain
+ffmcp team run "Research and write a report" --team main-team
+
+# 11. Use voiceover/TTS
 ffmcp config -p elevenlabs -k YOUR_ELEVENLABS_API_KEY
 ffmcp voiceover provider list --provider elevenlabs
 ffmcp voiceover create my-voice --provider elevenlabs --voice-id 21m00Tcm4TlvDq8ikWAM

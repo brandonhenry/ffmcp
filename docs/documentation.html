@@ -158,6 +158,7 @@
                     <li><a href="#text-generation">Text Generation</a></li>
                     <li><a href="#chat-mode">Chat Mode</a></li>
                     <li><a href="#agents">Agents</a></li>
+                    <li><a href="#teams">Hierarchical Teams</a></li>
                     <li><a href="#openai-features">OpenAI Features</a></li>
                     <li><a href="#tts-voiceover">TTS/Voiceover</a></li>
                     <li><a href="#brains">Brains (Zep Memory)</a></li>
@@ -376,6 +377,9 @@
                         
                         <dt><code>ffmcp agent</code></dt>
                         <dd>Create, manage, and run named agents</dd>
+                        
+                        <dt><code>ffmcp team</code></dt>
+                        <dd>Create, manage, and run hierarchical teams of agents</dd>
                     </dl>
                 </div>
             </section>
@@ -477,6 +481,101 @@
                 <h3>Vision with Local Images</h3>
                 <div class="command-example">
 <code><span class="prompt">$</span> ffmcp agent run "What is in these photos?" --image photo1.jpg --image photo2.png</code>
+                </div>
+            </section>
+
+            <section id="teams" class="command-section">
+                <h2>Hierarchical Teams</h2>
+                <p>Agents can work together in hierarchical teams to accomplish complex tasks. Teams use an orchestrator agent at the top that orchestrates collaboration by delegating tasks to members or sub-teams. All activity flows up through the hierarchy, and the top orchestrator has visibility into everything through shared brain/memory.</p>
+
+                <h3>Create a Simple Team</h3>
+                <div class="command-example">
+<code><span class="comment"># Create specialized agents</span>
+<span class="prompt">$</span> ffmcp agent create researcher -p openai -m gpt-4o-mini -i "You are a research specialist"
+<span class="prompt">$</span> ffmcp agent create writer -p openai -m gpt-4o-mini -i "You are a writing specialist"
+<span class="prompt">$</span> ffmcp agent create orchestrator -p openai -m gpt-4o-mini -i "You orchestrate teams"
+
+<span class="comment"># Enable delegation for orchestrator</span>
+<span class="prompt">$</span> ffmcp agent action enable orchestrator delegate_to_agent
+
+<span class="comment"># Create a team with orchestrator and members</span>
+<span class="prompt">$</span> ffmcp team create research-team -o orchestrator -m researcher -m writer</code>
+                </div>
+
+                <h3>Create a Team with Shared Brain</h3>
+                <div class="command-example">
+<code><span class="comment"># Create shared brain for team memory (flows up hierarchy)</span>
+<span class="prompt">$</span> ffmcp brain create team-brain
+<span class="prompt">$</span> ffmcp team create project-team -o orchestrator -m researcher -m writer -b team-brain</code>
+                </div>
+
+                <h3>Create Nested Teams (Teams within Teams)</h3>
+                <div class="command-example">
+<code><span class="comment"># Create sub-team orchestrators</span>
+<span class="prompt">$</span> ffmcp agent create sub-orchestrator-1 -p openai -m gpt-4o-mini -i "You coordinate a research sub-team"
+<span class="prompt">$</span> ffmcp agent action enable sub-orchestrator-1 delegate_to_agent
+
+<span class="prompt">$</span> ffmcp agent create sub-orchestrator-2 -p openai -m gpt-4o-mini -i "You coordinate a writing sub-team"
+<span class="prompt">$</span> ffmcp agent action enable sub-orchestrator-2 delegate_to_agent
+
+<span class="comment"># Create sub-teams</span>
+<span class="prompt">$</span> ffmcp team create research-sub-team -o sub-orchestrator-1 -m researcher -b team-brain
+<span class="prompt">$</span> ffmcp team create writing-sub-team -o sub-orchestrator-2 -m writer -b team-brain
+
+<span class="comment"># Create top-level team with sub-teams</span>
+<span class="prompt">$</span> ffmcp team create main-team -o orchestrator -s research-sub-team -s writing-sub-team -b team-brain</code>
+                </div>
+
+                <h3>Run a Task with a Team</h3>
+                <div class="command-example">
+<code><span class="comment"># Run a task - orchestrator delegates as needed</span>
+<span class="prompt">$</span> ffmcp team run "Research and write a comprehensive report on quantum computing" --team main-team
+
+<span class="comment"># Use active team (no --team flag needed)</span>
+<span class="prompt">$</span> ffmcp team use main-team
+<span class="prompt">$</span> ffmcp team run "Create a summary of recent AI breakthroughs"</code>
+                </div>
+
+                <h3>Manage Teams</h3>
+                <div class="command-example">
+<code><span class="comment"># List all teams</span>
+<span class="prompt">$</span> ffmcp team list
+
+<span class="comment"># Show team details including hierarchy</span>
+<span class="prompt">$</span> ffmcp team show main-team
+
+<span class="comment"># Add/remove members and sub-teams</span>
+<span class="prompt">$</span> ffmcp team add-member main-team analyst
+<span class="prompt">$</span> ffmcp team add-sub-team main-team analysis-sub-team
+<span class="prompt">$</span> ffmcp team remove-member main-team analyst
+<span class="prompt">$</span> ffmcp team remove-sub-team main-team analysis-sub-team
+
+<span class="comment"># Set a different orchestrator</span>
+<span class="prompt">$</span> ffmcp team set-orchestrator main-team new-orchestrator</code>
+                </div>
+
+                <div class="workflow-box">
+                    <h3>How Hierarchical Teams Work</h3>
+                    <ul>
+                        <li><strong>Orchestrator:</strong> One agent at the top level that receives tasks and orchestrates collaboration</li>
+                        <li><strong>Members:</strong> Direct agent members below the orchestrator</li>
+                        <li><strong>Sub-teams:</strong> Nested teams with their own orchestrators and members (supports multiple layers)</li>
+                        <li><strong>Shared Brain:</strong> Memory context that flows up the hierarchy - the top orchestrator sees all activity</li>
+                        <li><strong>Delegation:</strong> Orchestrators can delegate to members or sub-team orchestrators</li>
+                        <li><strong>Visibility:</strong> All activity flows up through the hierarchy, giving the top orchestrator complete visibility</li>
+                    </ul>
+                </div>
+
+                <h3>Example Hierarchical Structure</h3>
+                <div class="command-example">
+<code>main-team (orchestrator: ceo)
+├── research-sub-team (orchestrator: research-manager)
+│   ├── researcher-1
+│   └── researcher-2
+├── writing-sub-team (orchestrator: writing-manager)
+│   ├── writer-1
+│   └── writer-2
+└── direct-member (analyst)</code>
                 </div>
             </section>
 

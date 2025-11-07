@@ -11,6 +11,7 @@
 - 📊 **Streaming**: Real-time streaming support for responses
 - 🎨 **Full OpenAI Support**: All OpenAI features including vision, images, audio, embeddings, and assistants
 - 🧠 **Memory with Zep (Brains)**: Create brains, store/retrieve chat memory, collections, and graph
+- 🤖 **Agents**: Named agents with model, instructions, brain, dynamic properties, and actions (web, images, vision, embeddings)
 
 ## Installation
 
@@ -77,6 +78,28 @@ ffmcp chat "Hello, how are you?" -p anthropic
 
 # With system message
 ffmcp chat "What is 2+2?" -s "You are a helpful math tutor"
+```
+
+### 4. Agents
+
+```bash
+# Create an agent (OpenAI provider, default actions enabled)
+ffmcp agent create myagent -p openai -m gpt-4o-mini -i "You are a helpful assistant" --brain mybrain
+
+# List and select the active agent
+ffmcp agent list
+ffmcp agent use myagent
+
+# Show details
+ffmcp agent show
+
+# Run the agent
+ffmcp agent run "Plan a 3-day trip to Paris and fetch top sights"
+
+# Manage properties and actions
+ffmcp agent prop set myagent timezone UTC
+ffmcp agent action enable myagent web_fetch
+ffmcp agent action disable myagent generate_image
 ```
 
 ## OpenAI Features

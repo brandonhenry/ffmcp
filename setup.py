@@ -28,6 +28,7 @@ setup(
     python_requires=">=3.8",
     install_requires=[
         "click>=8.0.0",
+        "httpx>=0.24.0",
     ],
     extras_require={
         "openai": ["openai>=1.0.0"],

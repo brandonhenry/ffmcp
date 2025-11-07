@@ -156,6 +156,7 @@
                     <li><a href="#basic-commands">Basic Commands</a></li>
                     <li><a href="#text-generation">Text Generation</a></li>
                     <li><a href="#chat-mode">Chat Mode</a></li>
+                    <li><a href="#agents">Agents</a></li>
                     <li><a href="#openai-features">OpenAI Features</a></li>
                     <li><a href="#brains">Brains (Zep Memory)</a></li>
                     <li><a href="#brains-collections">Brains: Collections & Documents</a></li>
@@ -243,6 +244,9 @@
 
                         <dt><code>ffmcp brain</code></dt>
                         <dd>Manage brains, memory, collections, and graph (Zep)</dd>
+                        
+                        <dt><code>ffmcp agent</code></dt>
+                        <dd>Create, manage, and run named agents</dd>
                     </dl>
                 </div>
             </section>
@@ -306,6 +310,44 @@
   -t 0.9 \
   --max-tokens 500 \
   -s</code>
+                </div>
+            </section>
+
+            <section id="agents" class="command-section">
+                <h2>Agents</h2>
+
+                <h3>Create an Agent</h3>
+                <div class="command-example">
+<code><span class="comment"># Create a helpful assistant with a brain attached</span>
+<span class="prompt">$</span> ffmcp agent create myagent -p openai -m gpt-4o-mini -i "You are a helpful assistant" --brain mybrain</code>
+                </div>
+
+                <h3>List, Use, Show</h3>
+                <div class="command-example">
+<code><span class="prompt">$</span> ffmcp agent list
+<span class="prompt">$</span> ffmcp agent use myagent
+<span class="prompt">$</span> ffmcp agent show</code>
+                </div>
+
+                <h3>Run the Agent</h3>
+                <div class="command-example">
+<code><span class="prompt">$</span> ffmcp agent run "Plan a 3-day trip to Paris and fetch top sights"</code>
+                </div>
+
+                <h3>Actions and Properties</h3>
+                <div class="command-example">
+<code><span class="comment"># Enable/disable actions</span>
+<span class="prompt">$</span> ffmcp agent action enable myagent web_fetch
+<span class="prompt">$</span> ffmcp agent action disable myagent generate_image
+
+<span class="comment"># Set/unset properties</span>
+<span class="prompt">$</span> ffmcp agent prop set myagent timezone UTC
+<span class="prompt">$</span> ffmcp agent prop unset myagent timezone</code>
+                </div>
+
+                <h3>Vision with Local Images</h3>
+                <div class="command-example">
+<code><span class="prompt">$</span> ffmcp agent run "What is in these photos?" --image photo1.jpg --image photo2.png</code>
                 </div>
             </section>
 

@@ -52,6 +52,7 @@
                     <li>📊 <strong>Streaming</strong> - Real-time streaming support for responses</li>
                     <li>🎨 <strong>Full OpenAI Support</strong> - Vision, images, audio, embeddings, and assistants</li>
                     <li>🧠 <strong>Brains (Zep Memory)</strong> - Create brains, chat memory, collections, graph</li>
+                    <li>🤖 <strong>Agents</strong> - Named agents with model, instructions, brain, properties, and actions (web, images, vision, embeddings)</li>
                 </ul>
             </section>
 
@@ -116,6 +117,15 @@ ffmcp generate "Hello, world!"</code>
                         <code>ffmcp brain create mybrain<br>
 ffmcp brain memory add --role user --role-type user --content "Who was Octavia Butler?"<br>
 ffmcp brain memory get</code>
+                    </div>
+                </div>
+
+                <div class="example-box">
+                    <h3>Agents</h3>
+                    <div class="code-block">
+                        <code>ffmcp agent create myagent -p openai -m gpt-4o-mini -i "You are a helpful assistant" --brain mybrain<br>
+ffmcp agent use myagent<br>
+ffmcp agent run "Plan a 3-day trip to Paris"</code>
                     </div>
                 </div>
             </section>

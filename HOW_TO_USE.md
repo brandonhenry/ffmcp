@@ -69,6 +69,24 @@ ffmcp chat "What is 2+2?" -p openai
 ffmcp chat "Solve this math problem" -s "You are a helpful math tutor" -p openai
 ```
 
+## Agents
+
+```bash
+# Create agent with defaults (OpenAI)
+ffmcp agent create myagent -p openai -m gpt-4o-mini -i "You are a helpful assistant"
+
+# Optionally attach a brain for memory and document search
+ffmcp agent create research -p openai -m gpt-4o-mini --brain mybrain -i "You are a research assistant"
+
+# Enable/disable actions
+ffmcp agent action enable myagent web_fetch
+ffmcp agent action disable myagent generate_image
+
+# Run the active agent
+ffmcp agent use myagent
+ffmcp agent run "Find and summarize today’s top AI news"
+```
+
 ## OpenAI Features
 
 ### 🖼️ Image Generation (DALL·E)

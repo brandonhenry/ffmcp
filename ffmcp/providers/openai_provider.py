@@ -178,6 +178,45 @@ class OpenAIProvider(BaseProvider):
             pass
         return response.choices[0].message.content
     
+    def vision_urls(self, prompt: str, image_urls: List[str], **kwargs) -> str:
+        """Analyze images available via URLs with vision models"""
+        model = kwargs.get('model', 'gpt-4o')
+        temperature = kwargs.get('temperature', 0.7)
+        max_tokens = kwargs.get('max_tokens')
+        image_contents = []
+        for url in image_urls:
+            image_contents.append({
+                "type": "image_url",
+                "image_url": {"url": url},
+            })
+        messages = [{
+            "role": "user",
+            "content": [
+                {"type": "text", "text": prompt},
+                *image_contents,
+            ],
+        }]
+        params = {
+            'model': model,
+            'messages': messages,
+            'temperature': temperature,
+        }
+        if max_tokens:
+            params['max_tokens'] = max_tokens
+        response = self.client.chat.completions.create(**params)
+        try:
+            usage = getattr(response, 'usage', None)
+            total = getattr(usage, 'total_tokens', None) if usage else None
+            if total is None and usage:
+                pt = getattr(usage, 'prompt_tokens', 0)
+                ct = getattr(usage, 'completion_tokens', 0)
+                total = (pt or 0) + (ct or 0)
+            if total:
+                self.config.add_token_usage(self.get_provider_name(), int(total))
+        except Exception:
+            pass
+        return response.choices[0].message.content
+
     # ========== Image Generation (DALL·E) ==========
     
     def generate_image(self, prompt: str, **kwargs) -> Dict[str, Any]:

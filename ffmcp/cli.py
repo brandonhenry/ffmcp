@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional
 from ffmcp.providers import get_provider
 from ffmcp.config import Config
 from ffmcp.brain import ZepBrainClient, BrainInfo, ZepSDKNotInstalledError
+from ffmcp.agents import Agent
 
 # Ensure UTF-8 encoding for stdin/stdout as early as possible
 # Environment hint for Python and downstream libs
@@ -824,6 +825,242 @@ def create(name: str, instructions: str, model: str, tools: Optional, temperatur
         click.echo(json.dumps(result, indent=2))
         if output:
             output.write(result['id'])
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+# ========== Agent commands ==========
+
+@cli.group()
+def agent():
+    """Create, manage, and run agents."""
+    pass
+
+
+@agent.command('create')
+@click.argument('name')
+@click.option('--provider', '-p', default='openai', type=click.Choice(['openai', 'anthropic']), help='Provider name')
+@click.option('--model', '-m', required=True, help='Default model for this agent')
+@click.option('--instructions', '-i', help='System prompt instructions')
+@click.option('--brain', help='Optional brain name for memory/search')
+@click.option('--prop', 'props', multiple=True, help='Set property key=value (repeatable)')
+@click.option('--web/--no-web', default=True, help='Enable web_fetch action')
+@click.option('--image-gen/--no-image-gen', default=True, help='Enable generate_image action')
+@click.option('--vision-urls/--no-vision-urls', default=True, help='Enable analyze_image_urls action')
+@click.option('--embeddings/--no-embeddings', default=True, help='Enable create_embedding action')
+@click.option('--brain-search/--no-brain-search', default=True, help='Enable brain_document_search action')
+def agent_create(name: str, provider: str, model: str, instructions: Optional[str], brain: Optional[str], props: tuple,
+                 web: bool, image_gen: bool, vision_urls: bool, embeddings: bool, brain_search: bool):
+    """Create a new agent and set it active."""
+    config = Config()
+    try:
+        properties = {}
+        for p in props or []:
+            if '=' in p:
+                k, v = p.split('=', 1)
+                properties[k] = v
+        actions = {}
+        if web:
+            actions['web_fetch'] = {}
+        if image_gen:
+            actions['generate_image'] = {}
+        if vision_urls:
+            actions['analyze_image_urls'] = {}
+        if embeddings:
+            actions['create_embedding'] = {}
+        if brain_search:
+            actions['brain_document_search'] = {}
+        config.create_agent(
+            name,
+            provider=provider,
+            model=model,
+            instructions=instructions,
+            brain=brain,
+            properties=properties,
+            actions=actions,
+        )
+        click.echo(f"Agent created: {name}")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@agent.command('list')
+def agent_list():
+    """List agents."""
+    config = Config()
+    agents = config.list_agents()
+    active = config.get_active_agent()
+    for a in agents:
+        marker = ' *' if a.get('name') == active else ''
+        click.echo(f"{a.get('name')}{marker}")
+
+
+@agent.command('use')
+@click.argument('name')
+def agent_use(name: str):
+    """Set active agent."""
+    config = Config()
+    try:
+        config.set_active_agent(name)
+        click.echo(f"Active agent: {name}")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@agent.command('current')
+def agent_current():
+    """Show active agent."""
+    config = Config()
+    curr = config.get_active_agent()
+    if curr:
+        click.echo(curr)
+    else:
+        click.echo("No active agent")
+
+
+@agent.command('show')
+@click.argument('name', required=False)
+def agent_show(name: Optional[str]):
+    """Show agent details (defaults to active agent)."""
+    config = Config()
+    if not name:
+        name = config.get_active_agent()
+    if not name:
+        click.echo("Error: No agent specified and no active agent set.", err=True)
+        sys.exit(1)
+    data = config.get_agent(name)
+    if not data:
+        click.echo(f"Error: Unknown agent '{name}'", err=True)
+        sys.exit(1)
+    click.echo(json.dumps({"name": name, **data}, indent=2))
+
+
+@agent.command('delete')
+@click.argument('name')
+def agent_delete(name: str):
+    """Delete an agent."""
+    config = Config()
+    config.delete_agent(name)
+    click.echo(f"Deleted agent: {name}")
+
+
+@agent.group('prop')
+def agent_prop():
+    """Manage agent properties."""
+    pass
+
+
+@agent_prop.command('set')
+@click.argument('name')
+@click.argument('key')
+@click.argument('value')
+def agent_prop_set(name: str, key: str, value: str):
+    config = Config()
+    try:
+        config.set_agent_property(name, key, value)
+        click.echo("OK")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@agent_prop.command('unset')
+@click.argument('name')
+@click.argument('key')
+def agent_prop_unset(name: str, key: str):
+    config = Config()
+    try:
+        config.remove_agent_property(name, key)
+        click.echo("OK")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@agent.group('action')
+def agent_action():
+    """Enable/disable agent actions."""
+    pass
+
+
+@agent_action.command('enable')
+@click.argument('name')
+@click.argument('action')
+@click.option('--config', 'config_file', type=click.File('r', encoding='utf-8'), help='Optional JSON config for action')
+def agent_action_enable(name: str, action: str, config_file):
+    cfg = None
+    if config_file:
+        try:
+            cfg = json.load(config_file)
+        except Exception as e:
+            click.echo(f"Error reading JSON: {e}", err=True)
+            sys.exit(1)
+    config = Config()
+    try:
+        config.enable_agent_action(name, action, cfg)
+        click.echo("OK")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@agent_action.command('disable')
+@click.argument('name')
+@click.argument('action')
+def agent_action_disable(name: str, action: str):
+    config = Config()
+    try:
+        config.disable_agent_action(name, action)
+        click.echo("OK")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@agent.command('run')
+@click.argument('prompt', required=False)
+@click.option('--agent', 'agent_name', help='Agent name (defaults to active agent)')
+@click.option('--image', 'images', multiple=True, type=click.Path(exists=True), help='Local image file(s) to include')
+def agent_run(prompt: Optional[str], agent_name: Optional[str], images: tuple):
+    """Run an agent with a prompt (reads stdin if omitted)."""
+    config = Config()
+    if not prompt:
+        prompt = sys.stdin.read()
+    if not prompt:
+        click.echo("Error: No prompt provided", err=True)
+        sys.exit(1)
+    if not agent_name:
+        agent_name = config.get_active_agent()
+    if not agent_name:
+        click.echo("Error: No agent specified and no active agent set.", err=True)
+        sys.exit(1)
+    spec = config.get_agent(agent_name)
+    if not spec:
+        click.echo(f"Error: Unknown agent '{agent_name}'", err=True)
+        sys.exit(1)
+    try:
+        ag = Agent(
+            config=config,
+            name=agent_name,
+            provider=spec.get('provider'),
+            model=spec.get('model'),
+            instructions=spec.get('instructions'),
+            brain=spec.get('brain'),
+            properties=spec.get('properties') or {},
+            actions_config=spec.get('actions') or {},
+        )
+        result = ag.run(input_text=prompt, images=list(images) if images else None)
+        click.echo(result)
     except Exception as e:
         error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
         click.echo(f"Error: {error_msg}", err=True)

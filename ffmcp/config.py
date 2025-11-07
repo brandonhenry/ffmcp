@@ -227,3 +227,111 @@ class Config:
     def get_active_brain(self) -> Optional[str]:
         return self._config.get('active_brain')
 
+    # ---------------- Agent registry ----------------
+    def list_agents(self) -> list:
+        agents = self._config.get('agents', {})
+        return [
+            {
+                'name': n,
+                **({} if not isinstance(v, dict) else v)
+            }
+            for n, v in agents.items()
+        ]
+
+    def get_agent(self, name: str) -> dict:
+        return self._config.get('agents', {}).get(name) or {}
+
+    def create_agent(
+        self,
+        name: str,
+        *,
+        provider: str,
+        model: str,
+        instructions: Optional[str] = None,
+        brain: Optional[str] = None,
+        properties: Optional[dict] = None,
+        actions: Optional[dict] = None,
+    ) -> dict:
+        if not name or not name.strip():
+            raise ValueError('agent name is required')
+        agents = self._config.setdefault('agents', {})
+        if name in agents:
+            raise ValueError(f'agent already exists: {name}')
+        agent_def = {
+            'provider': provider,
+            'model': model,
+            'instructions': instructions or '',
+            'brain': brain,
+            'properties': properties or {},
+            'actions': actions or {},
+        }
+        agents[name] = agent_def
+        self._config['active_agent'] = name
+        self._save_config()
+        return agent_def
+
+    def delete_agent(self, name: str):
+        agents = self._config.get('agents', {})
+        if name in agents:
+            del agents[name]
+            if self._config.get('active_agent') == name:
+                self._config['active_agent'] = None
+            self._save_config()
+
+    def set_active_agent(self, name: Optional[str]):
+        if name is not None:
+            agents = self._config.get('agents', {})
+            if name not in agents:
+                raise ValueError(f'unknown agent: {name}')
+        self._config['active_agent'] = name
+        self._save_config()
+
+    def get_active_agent(self) -> Optional[str]:
+        return self._config.get('active_agent')
+
+    def update_agent(self, name: str, updates: dict) -> dict:
+        agents = self._config.setdefault('agents', {})
+        if name not in agents:
+            raise ValueError(f'unknown agent: {name}')
+        if not isinstance(updates, dict):
+            raise ValueError('updates must be a dict')
+        current = agents[name]
+        current.update({k: v for k, v in updates.items() if v is not None})
+        agents[name] = current
+        self._save_config()
+        return current
+
+    def set_agent_property(self, name: str, key: str, value):
+        agents = self._config.setdefault('agents', {})
+        if name not in agents:
+            raise ValueError(f'unknown agent: {name}')
+        props = agents[name].setdefault('properties', {})
+        props[key] = value
+        self._save_config()
+
+    def remove_agent_property(self, name: str, key: str):
+        agents = self._config.setdefault('agents', {})
+        if name not in agents:
+            raise ValueError(f'unknown agent: {name}')
+        props = agents[name].setdefault('properties', {})
+        if key in props:
+            del props[key]
+            self._save_config()
+
+    def enable_agent_action(self, name: str, action: str, config: Optional[dict] = None):
+        agents = self._config.setdefault('agents', {})
+        if name not in agents:
+            raise ValueError(f'unknown agent: {name}')
+        actions = agents[name].setdefault('actions', {})
+        actions[action] = config if config is not None else {'enabled': True}
+        self._save_config()
+
+    def disable_agent_action(self, name: str, action: str):
+        agents = self._config.setdefault('agents', {})
+        if name not in agents:
+            raise ValueError(f'unknown agent: {name}')
+        actions = agents[name].setdefault('actions', {})
+        if action in actions:
+            del actions[action]
+            self._save_config()
+

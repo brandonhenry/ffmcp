@@ -12,6 +12,7 @@ from ffmcp.providers.together_provider import TogetherProvider
 from ffmcp.providers.cohere_provider import CohereProvider
 from ffmcp.providers.perplexity_provider import PerplexityProvider
 from ffmcp.providers.ai33_provider import AI33Provider
+from ffmcp.providers.aimlapi_provider import AIMLAPIProvider
 
 
 AVAILABLE_PROVIDERS: Dict[str, Type[BaseProvider]] = {
@@ -25,6 +26,7 @@ AVAILABLE_PROVIDERS: Dict[str, Type[BaseProvider]] = {
     'cohere': CohereProvider,
     'perplexity': PerplexityProvider,
     'ai33': AI33Provider,
+    'aimlapi': AIMLAPIProvider,
 }
 
 

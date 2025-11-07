@@ -85,7 +85,7 @@ def cli():
 
 @cli.command()
 @click.argument('prompt', required=False)
-@click.option('--provider', '-p', default='openai', help='AI provider to use (openai, anthropic, gemini, groq, deepseek, mistral, together, cohere, perplexity, ai33)')
+@click.option('--provider', '-p', default='openai', help='AI provider to use (openai, anthropic, gemini, groq, deepseek, mistral, together, cohere, perplexity, ai33, aimlapi)')
 @click.option('--model', '-m', help='Model to use (overrides default)')
 @click.option('--temperature', '-t', type=float, help='Temperature for generation')
 @click.option('--max-tokens', type=int, help='Maximum tokens to generate')
@@ -181,7 +181,7 @@ def generate(prompt: Optional[str], provider: str, model: Optional[str],
 
 @cli.command()
 @click.argument('prompt')
-@click.option('--provider', '-p', default='openai', help='AI provider to use (openai, anthropic, gemini, groq, deepseek, mistral, together, cohere, perplexity, ai33)')
+@click.option('--provider', '-p', default='openai', help='AI provider to use (openai, anthropic, gemini, groq, deepseek, mistral, together, cohere, perplexity, ai33, aimlapi)')
 @click.option('--model', '-m', help='Model to use')
 @click.option('--system', '-s', help='System message')
 @click.option('--thread', '-t', help='Thread name (maintains conversation history). If not specified, uses active thread if available.')
@@ -256,7 +256,7 @@ def providers():
 
 
 @cli.command()
-@click.option('--provider', '-p', help='Filter by provider (e.g., openai, anthropic, gemini, groq, deepseek, mistral, together, cohere, perplexity)')
+@click.option('--provider', '-p', help='Filter by provider (e.g., openai, anthropic, gemini, groq, deepseek, mistral, together, cohere, perplexity, ai33, aimlapi)')
 @click.option('--date', '-d', help='UTC date YYYY-MM-DD (default: today)')
 def tokens(provider: Optional[str], date: Optional[str]):
     """Show cumulative token usage for the given UTC day (integer)."""
@@ -978,6 +978,373 @@ def create(name: str, instructions: str, model: str, tools: Optional, temperatur
         sys.exit(1)
 
 
+# ========== AIMLAPI-specific commands ==========
+
+@cli.group()
+def aimlapi():
+    """AIMLAPI-specific commands (OpenAI-compatible API for 300+ models)"""
+    pass
+
+
+@aimlapi.command()
+@click.argument('prompt')
+@click.argument('images', nargs=-1, required=True)
+@click.option('--model', '-m', default='gpt-4o', help='Vision model to use')
+@click.option('--temperature', '-t', type=float, help='Temperature')
+@click.option('--max-tokens', type=int, help='Maximum tokens')
+@click.option('--output', '-o', type=click.File('w', encoding='utf-8'), help='Write output to file')
+def vision(prompt: str, images: tuple, model: str, temperature: Optional[float], 
+           max_tokens: Optional[int], output: Optional):
+    """Analyze images with vision models via AIMLAPI"""
+    config = Config()
+    try:
+        provider = get_provider('aimlapi', config)
+        if not hasattr(provider, 'vision'):
+            click.echo("Error: Vision not supported by this provider", err=True)
+            sys.exit(1)
+        
+        params = {'model': model}
+        if temperature is not None:
+            params['temperature'] = temperature
+        if max_tokens:
+            params['max_tokens'] = max_tokens
+        
+        result = provider.vision(prompt, list(images), **params)
+        click.echo(result)
+        if output:
+            output.write(result)
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@aimlapi.command()
+@click.argument('prompt')
+@click.option('--model', '-m', default='dall-e-3', help='Model (dall-e-2 or dall-e-3)')
+@click.option('--size', default='1024x1024', help='Image size')
+@click.option('--quality', default='standard', help='Quality (standard or hd for dall-e-3)')
+@click.option('--style', default='vivid', help='Style (vivid or natural for dall-e-3)')
+@click.option('--output', '-o', help='Save image URL to file')
+def image(prompt: str, model: str, size: str, quality: str, style: str, output: Optional[str]):
+    """Generate image using DALL·E via AIMLAPI"""
+    config = Config()
+    try:
+        provider = get_provider('aimlapi', config)
+        result = provider.generate_image(
+            prompt,
+            model=model,
+            size=size,
+            quality=quality,
+            style=style
+        )
+        click.echo(f"Image URL: {result['url']}")
+        if 'revised_prompt' in result and result['revised_prompt']:
+            click.echo(f"Revised prompt: {result['revised_prompt']}")
+        if output:
+            with open(output, 'w', encoding='utf-8') as f:
+                f.write(result['url'])
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@aimlapi.command()
+@click.argument('audio_file', type=click.Path(exists=True))
+@click.option('--model', '-m', default='whisper-1', help='Model to use')
+@click.option('--language', '-l', help='Language code (optional)')
+@click.option('--prompt', '-p', help='Prompt to guide transcription')
+@click.option('--output', '-o', type=click.File('w', encoding='utf-8'), help='Write output to file')
+@click.option('--json', 'json_output', is_flag=True, help='Output as JSON')
+def transcribe(audio_file: str, model: str, language: Optional[str], prompt: Optional[str],
+               output: Optional, json_output: bool):
+    """Transcribe audio to text using Whisper via AIMLAPI"""
+    config = Config()
+    try:
+        provider = get_provider('aimlapi', config)
+        params = {'model': model}
+        if language:
+            params['language'] = language
+        if prompt:
+            params['prompt'] = prompt
+        if json_output:
+            params['response_format'] = 'json'
+        
+        result = provider.transcribe(audio_file, **params)
+        
+        if json_output:
+            output_text = json.dumps(result, indent=2)
+        else:
+            output_text = result.get('text', str(result))
+        
+        click.echo(output_text)
+        if output:
+            output.write(output_text)
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@aimlapi.command()
+@click.argument('audio_file', type=click.Path(exists=True))
+@click.option('--model', '-m', default='whisper-1', help='Model to use')
+@click.option('--prompt', '-p', help='Prompt to guide translation')
+@click.option('--output', '-o', type=click.File('w', encoding='utf-8'), help='Write output to file')
+@click.option('--json', 'json_output', is_flag=True, help='Output as JSON')
+def translate(audio_file: str, model: str, prompt: Optional[str], output: Optional, json_output: bool):
+    """Translate audio to English using Whisper via AIMLAPI"""
+    config = Config()
+    try:
+        provider = get_provider('aimlapi', config)
+        params = {'model': model}
+        if prompt:
+            params['prompt'] = prompt
+        if json_output:
+            params['response_format'] = 'json'
+        
+        result = provider.translate(audio_file, **params)
+        
+        if json_output:
+            output_text = json.dumps(result, indent=2)
+        else:
+            output_text = result.get('text', str(result))
+        
+        click.echo(output_text)
+        if output:
+            output.write(output_text)
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@aimlapi.command()
+@click.argument('text')
+@click.argument('output_file', type=click.Path())
+@click.option('--model', '-m', default='tts-1', help='Model (tts-1 or tts-1-hd)')
+@click.option('--voice', '-v', default='alloy', 
+              type=click.Choice(['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer']),
+              help='Voice to use')
+@click.option('--speed', '-s', type=float, default=1.0, help='Speed (0.25 to 4.0)')
+def tts(text: str, output_file: str, model: str, voice: str, speed: float):
+    """Convert text to speech via AIMLAPI"""
+    config = Config()
+    try:
+        provider = get_provider('aimlapi', config)
+        result = provider.text_to_speech(text, output_file, model=model, voice=voice, speed=speed)
+        click.echo(f"Audio saved to: {result}")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@aimlapi.command()
+@click.argument('text')
+@click.option('--model', '-m', default='text-embedding-3-small', help='Embedding model')
+@click.option('--dimensions', '-d', type=int, help='Number of dimensions')
+@click.option('--output', '-o', type=click.File('w', encoding='utf-8'), help='Write output to file')
+@click.option('--json', 'json_output', is_flag=True, help='Output full JSON')
+def embed(text: str, model: str, dimensions: Optional[int], output: Optional, json_output: bool):
+    """Create embeddings for text via AIMLAPI"""
+    config = Config()
+    try:
+        provider = get_provider('aimlapi', config)
+        params = {'model': model}
+        if dimensions:
+            params['dimensions'] = dimensions
+        
+        result = provider.create_embedding(text, **params)
+        
+        if json_output:
+            output_text = json.dumps(result, indent=2)
+        else:
+            # Output just the embedding vector
+            embedding = result.get('embedding') or result.get('embeddings', [])[0]
+            output_text = json.dumps(embedding)
+        
+        click.echo(output_text)
+        if output:
+            output.write(output_text)
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@aimlapi.command()
+@click.argument('prompt')
+@click.option('--tools', '-t', type=click.File('r', encoding='utf-8'), help='Tools JSON file')
+@click.option('--model', '-m', help='Model to use')
+@click.option('--temperature', type=float, help='Temperature')
+@click.option('--output', '-o', type=click.File('w', encoding='utf-8'), help='Write output to file')
+def tools(prompt: str, tools: Optional, model: Optional[str], temperature: Optional[float], output: Optional):
+    """Chat with function calling support via AIMLAPI"""
+    config = Config()
+    try:
+        provider = get_provider('aimlapi', config)
+        
+        messages = [{"role": "user", "content": prompt}]
+        tools_list = []
+        
+        if tools:
+            tools_list = json.load(tools)
+        
+        params = {}
+        if model:
+            params['model'] = model
+        if temperature is not None:
+            params['temperature'] = temperature
+        
+        result = provider.chat_with_tools(messages, tools_list, **params)
+        
+        output_text = json.dumps(result, indent=2)
+        click.echo(output_text)
+        if output:
+            output.write(output_text)
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@aimlapi.group()
+def assistant():
+    """Manage OpenAI Assistants via AIMLAPI"""
+    pass
+
+
+@assistant.command()
+@click.argument('name')
+@click.argument('instructions')
+@click.option('--model', '-m', default='gpt-4o-mini', help='Model to use')
+@click.option('--tools', '-t', type=click.File('r', encoding='utf-8'), help='Tools JSON file')
+@click.option('--temperature', type=float, help='Temperature')
+@click.option('--output', '-o', type=click.File('w', encoding='utf-8'), help='Save assistant ID to file')
+def create(name: str, instructions: str, model: str, tools: Optional, temperature: Optional[float], output: Optional):
+    """Create a new assistant via AIMLAPI"""
+    config = Config()
+    try:
+        provider = get_provider('aimlapi', config)
+        
+        params = {'model': model}
+        if tools:
+            params['tools'] = json.load(tools)
+        if temperature is not None:
+            params['temperature'] = temperature
+        
+        result = provider.create_assistant(name, instructions, **params)
+        
+        click.echo(f"Assistant created: {result['id']}")
+        click.echo(json.dumps(result, indent=2))
+        if output:
+            output.write(result['id'])
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@assistant.command()
+@click.option('--output', '-o', type=click.File('w', encoding='utf-8'), help='Save thread ID to file')
+def thread(output: Optional):
+    """Create a conversation thread via AIMLAPI"""
+    config = Config()
+    try:
+        provider = get_provider('aimlapi', config)
+        result = provider.create_thread()
+        click.echo(f"Thread ID: {result['id']}")
+        if output:
+            output.write(result['id'])
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@assistant.command()
+@click.argument('thread_id')
+@click.argument('assistant_id')
+@click.option('--instructions', help='Override instructions')
+@click.option('--model', '-m', help='Override model')
+@click.option('--stream', '-s', is_flag=True, help='Stream the response')
+def run(thread_id: str, assistant_id: str, instructions: Optional[str], model: Optional[str], stream: bool):
+    """Run an assistant on a thread via AIMLAPI"""
+    config = Config()
+    try:
+        provider = get_provider('aimlapi', config)
+        params = {}
+        if instructions:
+            params['instructions'] = instructions
+        if model:
+            params['model'] = model
+        if stream:
+            params['stream'] = True
+        
+        result = provider.run_assistant(thread_id, assistant_id, **params)
+        click.echo(json.dumps(result, indent=2))
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@assistant.command()
+@click.argument('thread_id')
+@click.argument('role', type=click.Choice(['user', 'assistant']))
+@click.argument('content')
+@click.option('--file-ids', help='Comma-separated file IDs')
+def message(thread_id: str, role: str, content: str, file_ids: Optional[str]):
+    """Add a message to a thread via AIMLAPI"""
+    config = Config()
+    try:
+        provider = get_provider('aimlapi', config)
+        params = {}
+        if file_ids:
+            params['file_ids'] = file_ids.split(',')
+        
+        result = provider.add_message_to_thread(thread_id, role, content, **params)
+        click.echo(json.dumps(result, indent=2))
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@assistant.command()
+@click.argument('thread_id')
+@click.option('--limit', '-l', type=int, default=20, help='Limit number of messages')
+def messages(thread_id: str, limit: int):
+    """Get messages from a thread via AIMLAPI"""
+    config = Config()
+    try:
+        provider = get_provider('aimlapi', config)
+        result = provider.get_thread_messages(thread_id, limit=limit)
+        click.echo(json.dumps(result, indent=2))
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@assistant.command()
+@click.argument('file_path', type=click.Path(exists=True))
+@click.option('--purpose', '-p', default='assistants', help='File purpose')
+def upload(file_path: str, purpose: str):
+    """Upload a file for use with assistants via AIMLAPI"""
+    config = Config()
+    try:
+        provider = get_provider('aimlapi', config)
+        result = provider.upload_file(file_path, purpose=purpose)
+        click.echo(json.dumps(result, indent=2))
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
 # ========== Anthropic/Claude-specific commands ==========
 
 @cli.group()
@@ -1109,7 +1476,7 @@ def agent():
 
 @agent.command('create')
 @click.argument('name')
-@click.option('--provider', '-p', default='openai', type=click.Choice(['openai', 'anthropic', 'gemini', 'groq', 'deepseek', 'mistral', 'together', 'cohere', 'perplexity', 'ai33']), help='Provider name')
+@click.option('--provider', '-p', default='openai', type=click.Choice(['openai', 'anthropic', 'gemini', 'groq', 'deepseek', 'mistral', 'together', 'cohere', 'perplexity', 'ai33', 'aimlapi']), help='Provider name')
 @click.option('--model', '-m', required=True, help='Default model for this agent')
 @click.option('--instructions', '-i', help='System prompt instructions (inline text)')
 @click.option('--instructions-file', '-f', type=click.File('r', encoding='utf-8'), help='Read instructions from file')

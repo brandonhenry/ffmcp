@@ -5,7 +5,7 @@
 ## Features
 
 - 🚀 **Unified CLI**: Single command-line interface for multiple AI providers
-- 🔌 **9 AI Providers**: OpenAI, Anthropic, Google Gemini, Groq, DeepSeek, Mistral AI, Together AI, Cohere, and Perplexity
+- 🔌 **11 AI Providers**: OpenAI, Anthropic, Google Gemini, Groq, DeepSeek, Mistral AI, Together AI, Cohere, Perplexity, AI33, and AIMLAPI
 - 📝 **Simple**: Works just like ffmpeg - simple, powerful, composable
 - 🔧 **Configurable**: Manage API keys and settings easily
 - 📊 **Streaming**: Real-time streaming support for responses
@@ -69,6 +69,12 @@ ffmcp config -p cohere -k YOUR_COHERE_API_KEY
 # Set Perplexity API key
 ffmcp config -p perplexity -k YOUR_PERPLEXITY_API_KEY
 
+# Set AI33 API key
+ffmcp config -p ai33 -k YOUR_AI33_API_KEY
+
+# Set AIMLAPI API key
+ffmcp config -p aimlapi -k YOUR_AIMLAPI_API_KEY
+
 # Set ElevenLabs API key (for voiceover/TTS)
 ffmcp config -p elevenlabs -k YOUR_ELEVENLABS_API_KEY
 
@@ -82,6 +88,8 @@ export MISTRAL_API_KEY=your_key
 export TOGETHER_API_KEY=your_key
 export COHERE_API_KEY=your_key
 export PERPLEXITY_API_KEY=your_key
+export AI33_API_KEY=your_key
+export AIMLAPI_API_KEY=your_key
 export ELEVENLABS_API_KEY=your_key
 ```
 
@@ -732,7 +740,7 @@ ffmcp openai embed "$(cat transcript.txt)" -o embeddings.json
 
 ## Supported AI Providers
 
-ffmcp supports 9 major AI providers, each with their own strengths:
+ffmcp supports 11 major AI providers, each with their own strengths:
 
 | Provider | Models | Key Features | Best For |
 |----------|--------|-------------|----------|
@@ -745,6 +753,8 @@ ffmcp supports 9 major AI providers, each with their own strengths:
 | **Together AI** | Llama, Mixtral, Qwen, many more | Access to many open-source models | Experimentation, cost-effective |
 | **Cohere** | Command R+, Command R | Enterprise features, RAG | Business applications, embeddings |
 | **Perplexity** | Sonar Large, Sonar Pro | Built-in web search, citations | Research, real-time information |
+| **AI33** | Various models | Multiple model access | General purpose |
+| **AIMLAPI** | 300+ models unified API | Single API for 300+ models, OpenAI-compatible | Access to wide variety of models |
 
 ### Default Models
 
@@ -758,6 +768,8 @@ Each provider has a sensible default model:
 - Together: `meta-llama/Llama-3-70b-chat-hf`
 - Cohere: `command-r-plus`
 - Perplexity: `llama-3.1-sonar-large-128k-online`
+- AI33: (varies by model)
+- AIMLAPI: `gpt-4o`
 
 You can override defaults with the `-m` flag or set a custom default:
 ```bash

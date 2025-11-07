@@ -1,6 +1,6 @@
 # AI Providers Guide
 
-ffmcp supports 9 major AI providers, each with unique strengths and use cases. This guide helps you choose the right provider for your needs.
+ffmcp supports 11 major AI providers, each with unique strengths and use cases. This guide helps you choose the right provider for your needs.
 
 ## Available Providers
 
@@ -263,23 +263,77 @@ ffmcp generate "Current weather in San Francisco" -p perplexity
 
 ---
 
-## Choosing the Right Provider
+### 10. AIMLAPI
+**Best for:** Access to 300+ AI models through a unified API, experimentation with multiple models
+
+**Models:**
+- `gpt-4o` (default) - OpenAI GPT-4o
+- `gpt-4o-mini` - OpenAI GPT-4o Mini
+- `gpt-4-turbo` - OpenAI GPT-4 Turbo
+- `claude-3-5-sonnet-20241022` - Anthropic Claude 3.5 Sonnet
+- `claude-3-opus` - Anthropic Claude 3 Opus
+- `gemini-2.0-flash-exp` - Google Gemini 2.0 Flash
+- `gemini-1.5-pro` - Google Gemini 1.5 Pro
+- `llama-3.1-70b-versatile` - Meta Llama 3.1 70B
+- `mistral-large-latest` - Mistral Large
+- `deepseek-chat` - DeepSeek Chat
+- And 290+ more models from various providers
+
+**Unique Features:**
+- ✅ Unified API for 300+ AI models
+- ✅ OpenAI-compatible API format
+- ✅ Access to models from multiple providers
+- ✅ Vision support (with compatible models)
+- ✅ Image generation (DALL·E models)
+- ✅ Audio transcription (Whisper models)
+- ✅ Text-to-speech (TTS models)
+- ✅ Embeddings (embedding models)
+- ✅ Function calling / tools
+- ✅ Assistants API support
+- ✅ Single API key for all models
+
+**Setup:**
+```bash
+ffmcp config -p aimlapi -k YOUR_AIMLAPI_API_KEY
+# Get API key from: https://aimlapi.com/app/sign-up/
+```
+
+**Example:**
+```bash
+# Use GPT-4o through AIMLAPI
+ffmcp generate "Explain quantum computing" -p aimlapi -m gpt-4o
+
+# Use Claude through AIMLAPI
+ffmcp generate "Analyze this document" -p aimlapi -m claude-3-5-sonnet-20241022
+
+# Use Gemini through AIMLAPI
+ffmcp generate "Write a story" -p aimlapi -m gemini-2.0-flash-exp
+
+# Vision with AIMLAPI
+ffmcp aimlapi vision "What's in this image?" photo.jpg
+
+# Image generation with AIMLAPI
+ffmcp aimlapi image "A futuristic city"
+```
+
+---
 
 ### By Use Case
 
 | Use Case | Recommended Provider |
 |----------|---------------------|
-| **General purpose** | OpenAI, Gemini, Groq |
-| **Code generation** | DeepSeek, OpenAI |
+| **General purpose** | OpenAI, Gemini, Groq, AIMLAPI |
+| **Code generation** | DeepSeek, OpenAI, AIMLAPI |
 | **Speed critical** | Groq |
 | **Long documents** | Anthropic Claude |
-| **Image understanding** | OpenAI, Anthropic, Gemini |
-| **Image generation** | OpenAI (DALL·E) |
-| **Audio transcription** | OpenAI (Whisper) |
+| **Image understanding** | OpenAI, Anthropic, Gemini, AIMLAPI |
+| **Image generation** | OpenAI (DALL·E), AIMLAPI |
+| **Audio transcription** | OpenAI (Whisper), AIMLAPI |
 | **Web search** | Perplexity |
 | **Enterprise** | Cohere, Mistral |
-| **Experimentation** | Together AI |
+| **Experimentation** | Together AI, AIMLAPI |
 | **Cost-effective** | Groq, Together AI, DeepSeek |
+| **Multiple models** | AIMLAPI |
 
 ### By Speed
 
@@ -289,9 +343,10 @@ ffmcp generate "Current weather in San Francisco" -p perplexity
 4. **DeepSeek** - Fast
 5. **Mistral Small** - Fast
 6. **Together AI** - Variable (depends on model)
-7. **Anthropic Claude** - Moderate
-8. **Cohere** - Moderate
-9. **Perplexity** - Slower (due to web search)
+7. **AIMLAPI** - Variable (depends on selected model)
+8. **Anthropic Claude** - Moderate
+9. **Cohere** - Moderate
+10. **Perplexity** - Slower (due to web search)
 
 ### By Cost
 
@@ -301,24 +356,27 @@ ffmcp generate "Current weather in San Francisco" -p perplexity
 4. **OpenAI GPT-4o-mini** - Moderate
 5. **Gemini** - Moderate
 6. **Mistral** - Moderate
-7. **Cohere** - Moderate-High
-8. **Anthropic Claude** - Higher
-9. **OpenAI GPT-4o** - Higher
-10. **Perplexity** - Higher (includes web search)
+7. **AIMLAPI** - Variable (depends on selected model)
+8. **Cohere** - Moderate-High
+9. **Anthropic Claude** - Higher
+10. **OpenAI GPT-4o** - Higher
+11. **Perplexity** - Higher (includes web search)
 
 ## Provider Comparison
 
-| Feature | OpenAI | Anthropic | Gemini | Groq | DeepSeek | Mistral | Together | Cohere | Perplexity |
-|---------|--------|-----------|--------|------|----------|---------|----------|--------|------------|
-| Chat | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Streaming | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Vision | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
-| Image Gen | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Audio | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Embeddings | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
-| Web Search | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
-| Speed | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
-| Cost | ⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ |
+| Feature | OpenAI | Anthropic | Gemini | Groq | DeepSeek | Mistral | Together | Cohere | Perplexity | AIMLAPI |
+|---------|--------|-----------|--------|------|----------|---------|----------|--------|------------|---------|
+| Chat | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Streaming | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Vision | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ | ✅* |
+| Image Gen | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅* |
+| Audio | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅* |
+| Embeddings | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ✅* |
+| Web Search | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| Speed | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ |
+| Cost | ⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ |
+
+*Feature availability depends on the selected model
 
 ## Tips
 
@@ -328,7 +386,8 @@ ffmcp generate "Current weather in San Francisco" -p perplexity
 4. **Use OpenAI for features** - When you need vision, images, or audio
 5. **Use Anthropic for quality** - When you need the best reasoning
 6. **Use Together AI for experimentation** - Try different open-source models
-7. **Check token usage** - Monitor costs with `ffmcp tokens`
+7. **Use AIMLAPI for variety** - Access 300+ models through a single API
+8. **Check token usage** - Monitor costs with `ffmcp tokens`
 
 ## Getting API Keys
 
@@ -341,6 +400,7 @@ ffmcp generate "Current weather in San Francisco" -p perplexity
 - **Together AI**: https://api.together.xyz/
 - **Cohere**: https://dashboard.cohere.com/
 - **Perplexity**: https://www.perplexity.ai/settings/api
+- **AIMLAPI**: https://aimlapi.com/app/sign-up/
 
 ## Examples
 
@@ -351,6 +411,8 @@ ffmcp generate "Explain quantum computing" -p openai
 ffmcp generate "Explain quantum computing" -p gemini
 ffmcp generate "Explain quantum computing" -p groq
 ffmcp generate "Explain quantum computing" -p anthropic
+ffmcp generate "Explain quantum computing" -p aimlapi -m gpt-4o
+ffmcp generate "Explain quantum computing" -p aimlapi -m claude-3-5-sonnet-20241022
 ```
 
 ### Speed Test

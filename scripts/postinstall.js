@@ -50,8 +50,12 @@ try {
 try {
   console.log(`   Installing Python package and all AI provider dependencies...`);
   
+  // Use --user flag to avoid externally-managed-environment error on macOS
+  // This installs to user site-packages which is safe and doesn't break system Python
+  const pipFlags = '--user --quiet --disable-pip-version-check';
+  
   // First install the package itself in editable mode
-  const installPackageCmd = `${pythonCmd} -m pip install -e "${packageDir}" --quiet --disable-pip-version-check`;
+  const installPackageCmd = `${pythonCmd} -m pip install -e "${packageDir}" ${pipFlags}`;
   execSync(installPackageCmd, {
     stdio: 'pipe',
     cwd: packageDir,
@@ -62,7 +66,7 @@ try {
   const requirementsFile = path.join(packageDir, 'requirements.txt');
   if (fs.existsSync(requirementsFile)) {
     console.log(`   Installing AI provider dependencies (OpenAI, Anthropic, Gemini, Groq, etc.)...`);
-    const installDepsCmd = `${pythonCmd} -m pip install -r "${requirementsFile}" --quiet --disable-pip-version-check`;
+    const installDepsCmd = `${pythonCmd} -m pip install -r "${requirementsFile}" ${pipFlags}`;
     execSync(installDepsCmd, {
       stdio: 'pipe',
       cwd: packageDir,
@@ -88,14 +92,14 @@ try {
   console.error('');
   console.error('You can install it manually:');
   console.error(`  cd ${packageDir}`);
-  console.error(`  ${pythonCmd} -m pip install -e .`);
-  console.error(`  ${pythonCmd} -m pip install -r requirements.txt`);
+  console.error(`  ${pythonCmd} -m pip install -e . --user`);
+  console.error(`  ${pythonCmd} -m pip install -r requirements.txt --user`);
   console.error('');
   console.error('Or install from source:');
   console.error('  git clone https://github.com/brandonhenry/ffmcp.git');
   console.error('  cd ffmcp');
-  console.error(`  ${pythonCmd} -m pip install -e .`);
-  console.error(`  ${pythonCmd} -m pip install -r requirements.txt`);
+  console.error(`  ${pythonCmd} -m pip install -e . --user`);
+  console.error(`  ${pythonCmd} -m pip install -r requirements.txt --user`);
   process.exit(1);
 }
 

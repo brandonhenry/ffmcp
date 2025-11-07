@@ -19,7 +19,7 @@ child.on('error', (error) => {
     console.error('Error: Python ffmcp is not installed.');
     console.error('Please install it first:');
     console.error('  pip install -e .');
-    console.error('Or see https://github.com/yourusername/ffmcp for installation instructions.');
+    console.error('Or see https://github.com/brandonhenry/ffmcp for installation instructions.');
     process.exit(1);
   } else {
     console.error('Error:', error.message);

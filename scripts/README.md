@@ -97,7 +97,7 @@ git stash
 **"Package name already taken"**
 - The package name might be taken on npm
 - Check: https://www.npmjs.com/package/ffmcp
-- Consider using a scoped package: `@yourusername/ffmcp`
+- Consider using a scoped package: `@brandonhenry/ffmcp`
 
 ## Version Synchronization
 

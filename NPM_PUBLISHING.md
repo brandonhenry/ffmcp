@@ -31,7 +31,7 @@ Make sure the repository URL in `package.json` points to your actual GitHub repo
 {
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/ffmcp.git"
+    "url": "https://github.com/brandonhenry/ffmcp.git"
   }
 }
 ```
@@ -128,7 +128,7 @@ ffmcp --version
 ## Troubleshooting
 
 ### "Package name already taken"
-- Choose a different name or add a scope: `@yourusername/ffmcp`
+- Choose a different name or add a scope: `@brandonhenry/ffmcp`
 - Update `package.json` name field accordingly
 
 ### "You do not have permission"

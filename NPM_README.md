@@ -11,7 +11,7 @@ This npm package requires the Python `ffmcp` package to be installed first.
 1. **Install Python ffmcp:**
    ```bash
    # Clone the repository
-   git clone https://github.com/yourusername/ffmcp.git
+   git clone https://github.com/brandonhenry/ffmcp.git
    cd ffmcp
    
    # Create a virtual environment (recommended)
@@ -278,6 +278,6 @@ MIT License
 
 ## Links
 
-- [GitHub Repository](https://github.com/yourusername/ffmcp)
-- [Python Package Documentation](https://github.com/yourusername/ffmcp#readme)
+- [GitHub Repository](https://github.com/brandonhenry/ffmcp)
+- [Python Package Documentation](https://github.com/brandonhenry/ffmcp#readme)
 

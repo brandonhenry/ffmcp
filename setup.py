@@ -12,7 +12,7 @@ setup(
     description="AI command-line tool inspired by ffmpeg",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/ffmcp",
+    url="https://github.com/brandonhenry/ffmcp",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 3 - Alpha",

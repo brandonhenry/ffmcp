@@ -28,7 +28,7 @@ node -e "const ffmcp = require('./index.js'); console.log('Module loaded:', !!ff
 
 Update these in `package.json`:
 - **Author**: Replace "Your Name" with your actual name
-- **Repository URL**: Replace "yourusername" with your GitHub username
+- **Repository URL**: Already updated to `https://github.com/brandonhenry/ffmcp.git`
 - **Version**: Start with `0.1.0` (or update if needed)
 
 ### 3. Publish to npm

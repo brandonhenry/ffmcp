@@ -123,7 +123,7 @@ class FFmcp {
         throw new Error(
           'Python ffmcp is not installed. Please install it first:\n' +
           '  pip install -e .\n' +
-          'Or see https://github.com/yourusername/ffmcp for installation instructions.'
+          'Or see https://github.com/brandonhenry/ffmcp for installation instructions.'
         );
       }
     }

@@ -32,7 +32,7 @@ ffmcp can be installed via **npm** (recommended) or **Python** (from source).
 1. **Install Python package** (required):
    ```bash
    # Clone the repository
-   git clone https://github.com/yourusername/ffmcp.git
+   git clone https://github.com/brandonhenry/ffmcp.git
    cd ffmcp
    
    # Create a virtual environment (recommended)
@@ -60,7 +60,7 @@ ffmcp can be installed via **npm** (recommended) or **Python** (from source).
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/ffmcp.git
+git clone https://github.com/brandonhenry/ffmcp.git
 cd ffmcp
 
 # Create a virtual environment (recommended)

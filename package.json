@@ -43,7 +43,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/ffmcp.git"
+    "url": "https://github.com/brandonhenry/ffmcp.git"
   },
   "engines": {
     "node": ">=14.0.0"

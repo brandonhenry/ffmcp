@@ -972,6 +972,6 @@ config.set_agent_voice("assistant", None)  # Remove voice
 
 - [ElevenLabs Documentation](https://elevenlabs.io/docs)
 - [FishAudio Documentation](https://fish.audio/docs)
-- [ffmcp GitHub Repository](https://github.com/yourusername/ffmcp)
+- [ffmcp GitHub Repository](https://github.com/brandonhenry/ffmcp)
 - [Voice Configuration Examples](./examples/voice_configs.json) (if available)
 

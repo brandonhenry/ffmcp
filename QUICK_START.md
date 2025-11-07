@@ -6,7 +6,7 @@
 
 ```bash
 # Clone the repository (if you haven't already)
-git clone https://github.com/yourusername/ffmcp.git
+git clone https://github.com/brandonhenry/ffmcp.git
 cd ffmcp
 
 # Create and activate a virtual environment (required on macOS with Homebrew Python)

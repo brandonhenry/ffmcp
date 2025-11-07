@@ -253,12 +253,22 @@ ffmcp brain memory add --role user --role-type user --content "Who was Octavia B
 # Get memory context
 ffmcp brain memory get
 
+# Get memory for a specific named brain
+ffmcp brain memory get --brain mybrain
+
+# Get memory for a specific session within a brain
+ffmcp brain memory get --brain mybrain --session session-123
+
 # Semantic search over memory
 ffmcp brain memory search "Octavia"
 
 # Clear memory for the session
 ffmcp brain memory clear
 ```
+
+Notes:
+- If you omit `--brain`, the active brain is used (`ffmcp brain use <name>`).
+- If you omit `--session`, it defaults to the brain’s `default_session_id` (if set) or the brain name.
 
 ### Collections & Documents
 ```bash

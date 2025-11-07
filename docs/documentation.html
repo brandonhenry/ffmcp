@@ -505,6 +505,17 @@ EOF
 <span class="comment"># Clear memory</span>
 <span class="prompt">$</span> ffmcp brain memory clear</code>
                 </div>
+                <div class="tip-box">
+                    <strong>Named brains & sessions:</strong>
+                    <div class="command-example" style="margin-top:1rem;">
+<code><span class="comment"># Get memory for a specific brain</span>
+<span class="prompt">$</span> ffmcp brain memory get --brain mybrain
+
+<span class="comment"># Get memory for a specific session within a brain</span>
+<span class="prompt">$</span> ffmcp brain memory get --brain mybrain --session session-123</code>
+                    </div>
+                    <p style="margin:0.5rem 0 0 0;">If <code>--brain</code> is omitted, the active brain is used. If <code>--session</code> is omitted, it defaults to the brain’s <code>default_session_id</code> (if set) or the brain name.</p>
+                </div>
             </section>
 
             <section id="brains-collections" class="command-section">

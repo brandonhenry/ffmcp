@@ -95,6 +95,7 @@ ffmcp openai transcribe audio.mp3 -o transcript.txt
 ffmcp brain create mybrain
 ffmcp brain memory add --role user --role-type user --content "Remember: favorite color is blue"
 ffmcp brain memory get
+ffmcp brain memory get --brain mybrain --session session-123
 ```
 
 ## Troubleshooting

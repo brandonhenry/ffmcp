@@ -12,6 +12,7 @@
 - 🎨 **Full OpenAI Support**: All OpenAI features including vision, images, audio, embeddings, and assistants
 - 🧠 **Memory with Zep (Brains)**: Create brains, store/retrieve chat memory, collections, and graph
 - 🤖 **Agents**: Named agents with model, instructions, brain, dynamic properties, and actions (web, images, vision, embeddings)
+- 👥 **Multi-Agent Teams**: Agents can work together in teams, delegate tasks, and collaborate to accomplish complex goals
 - 💬 **Threads**: Conversation history for both chat and agents - maintain context across multiple interactions
 - 🎤 **Voiceover/TTS**: Full text-to-speech support with multiple providers (ElevenLabs), voice management, and agent voice integration
 
@@ -193,6 +194,105 @@ ffmcp agent action disable myagent generate_image
 ```
 
 **See [Threads: Conversation History](#threads-conversation-history) section for detailed thread documentation.**
+
+### 5. Multi-Agent Teams (Hierarchical)
+
+Agents can work together in hierarchical teams to accomplish complex tasks. Teams use an orchestrator agent at the top that orchestrates collaboration by delegating tasks to members or sub-teams. All activity flows up through the hierarchy, and the top orchestrator has visibility into everything through shared brain/memory.
+
+```bash
+# Create specialized agents
+ffmcp agent create researcher -p openai -m gpt-4o-mini -i "You are a research specialist. Focus on finding and analyzing information."
+ffmcp agent create writer -p openai -m gpt-4o-mini -i "You are a writing specialist. Focus on creating clear, well-structured content."
+ffmcp agent create orchestrator -p openai -m gpt-4o-mini -i "You are a project orchestrator. Break down tasks and delegate to team members."
+
+# Enable delegation action for orchestrator (allows it to delegate to other agents)
+ffmcp agent action enable orchestrator delegate_to_agent
+
+# Create a simple team with orchestrator and members
+ffmcp team create research-team -o orchestrator -m researcher -m writer
+
+# Create a shared brain for team memory (flows up hierarchy)
+ffmcp brain create team-brain
+ffmcp team create project-team -o orchestrator -m researcher -m writer -b team-brain
+
+# Create nested teams (teams within teams)
+# First create sub-teams
+ffmcp agent create sub-orchestrator-1 -p openai -m gpt-4o-mini -i "You coordinate a research sub-team"
+ffmcp agent action enable sub-orchestrator-1 delegate_to_agent
+ffmcp team create research-sub-team -o sub-orchestrator-1 -m researcher -b team-brain
+
+ffmcp agent create sub-orchestrator-2 -p openai -m gpt-4o-mini -i "You coordinate a writing sub-team"
+ffmcp agent action enable sub-orchestrator-2 delegate_to_agent
+ffmcp team create writing-sub-team -o sub-orchestrator-2 -m writer -b team-brain
+
+# Create top-level team with sub-teams
+ffmcp team create main-team -o orchestrator -s research-sub-team -s writing-sub-team -b team-brain
+
+# Run a task with the hierarchical team (orchestrator delegates as needed)
+ffmcp team run "Research and write a comprehensive report on quantum computing" --team main-team
+
+# List teams
+ffmcp team list
+
+# Show team details including hierarchy
+ffmcp team show main-team
+
+# Add/remove members and sub-teams
+ffmcp team add-member main-team analyst
+ffmcp team add-sub-team main-team analysis-sub-team
+ffmcp team remove-member main-team analyst
+
+# Set a different orchestrator
+ffmcp team set-orchestrator main-team new-orchestrator
+```
+
+**How Hierarchical Teams Work:**
+- **Orchestrator**: One agent at the top level that receives tasks and orchestrates collaboration
+- **Members**: Direct agent members below the orchestrator
+- **Sub-teams**: Nested teams with their own orchestrators and members (supports multiple layers)
+- **Shared Brain**: Memory context that flows up the hierarchy - the top orchestrator sees all activity
+- **Delegation**: Orchestrators can delegate to members or sub-team orchestrators
+- **Visibility**: All activity flows up through the hierarchy, giving the top orchestrator complete visibility
+
+**Example Hierarchical Structure:**
+```
+main-team (orchestrator: ceo)
+├── research-sub-team (orchestrator: research-manager)
+│   ├── researcher-1
+│   └── researcher-2
+├── writing-sub-team (orchestrator: writing-manager)
+│   ├── writer-1
+│   └── writer-2
+└── direct-member (analyst)
+```
+
+**Example Workflow:**
+```bash
+# 1. Create agents for different roles
+ffmcp agent create ceo -p openai -m gpt-4o-mini -i "You are a CEO orchestrating multiple teams"
+ffmcp agent create research-manager -p openai -m gpt-4o-mini -i "You manage a research team"
+ffmcp agent create writing-manager -p openai -m gpt-4o-mini -i "You manage a writing team"
+ffmcp agent create researcher-1 -p openai -m gpt-4o-mini -i "You are a researcher"
+ffmcp agent create writer-1 -p openai -m gpt-4o-mini -i "You are a writer"
+
+# 2. Enable delegation for orchestrators
+ffmcp agent action enable ceo delegate_to_agent
+ffmcp agent action enable research-manager delegate_to_agent
+ffmcp agent action enable writing-manager delegate_to_agent
+
+# 3. Create shared brain for team memory
+ffmcp brain create org-brain
+
+# 4. Create sub-teams
+ffmcp team create research-team -o research-manager -m researcher-1 -b org-brain
+ffmcp team create writing-team -o writing-manager -m writer-1 -b org-brain
+
+# 5. Create top-level team with sub-teams
+ffmcp team create org-team -o ceo -s research-team -s writing-team -b org-brain
+
+# 6. Run a complex task - CEO orchestrates, delegates to sub-teams, sees all activity
+ffmcp team run "Create a comprehensive market analysis report" --team org-team
+```
 
 ## OpenAI Features
 

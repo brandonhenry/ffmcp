@@ -215,12 +215,89 @@ class BrainDocumentSearchAction(AgentAction):
         return res
 
 
+class DelegateToAgentAction(AgentAction):
+    def name(self) -> str:
+        return "delegate_to_agent"
+
+    def description(self) -> str:
+        return "Delegate a task to another agent and return their response. Use this when you need specialized expertise or want to collaborate with other agents."
+
+    def parameters_schema(self) -> Dict[str, Any]:
+        return {
+            "type": "object",
+            "properties": {
+                "agent_name": {
+                    "type": "string",
+                    "description": "Name of the agent to delegate the task to"
+                },
+                "task": {
+                    "type": "string",
+                    "description": "The task or question to delegate to the other agent"
+                },
+                "thread_name": {
+                    "type": "string",
+                    "description": "Optional thread name for the delegated agent (uses active thread if not specified)"
+                },
+            },
+            "required": ["agent_name", "task"],
+        }
+
+    def call(self, arguments: Dict[str, Any], ctx: ActionContext) -> Any:
+        from ffmcp.agents import Agent
+        
+        agent_name = str(arguments.get("agent_name"))
+        task = str(arguments.get("task"))
+        thread_name = arguments.get("thread_name")
+        
+        # Get agent spec from config
+        agent_spec = ctx.config.get_agent(agent_name)
+        if not agent_spec:
+            return {
+                "error": f"Agent '{agent_name}' not found",
+                "agent_name": agent_name,
+                "task": task,
+            }
+        
+        # Create and run the delegated agent
+        try:
+            delegated_agent = Agent(
+                config=ctx.config,
+                name=agent_name,
+                provider=agent_spec.get('provider'),
+                model=agent_spec.get('model'),
+                instructions=agent_spec.get('instructions'),
+                brain=agent_spec.get('brain'),
+                properties=agent_spec.get('properties') or {},
+                actions_config=agent_spec.get('actions') or {},
+            )
+            
+            result = delegated_agent.run(
+                input_text=task,
+                thread_name=thread_name,
+            )
+            
+            return {
+                "agent_name": agent_name,
+                "task": task,
+                "result": result,
+                "success": True,
+            }
+        except Exception as e:
+            return {
+                "agent_name": agent_name,
+                "task": task,
+                "error": str(e),
+                "success": False,
+            }
+
+
 BUILTIN_ACTIONS = {
     'web_fetch': WebFetchAction,
     'generate_image': ImageGenerateAction,
     'analyze_image_urls': ImageAnalyzeUrlsAction,
     'create_embedding': EmbeddingCreateAction,
     'brain_document_search': BrainDocumentSearchAction,
+    'delegate_to_agent': DelegateToAgentAction,
 }
 
 

@@ -754,3 +754,276 @@ class Config:
         else:
             raise ValueError(f'unknown voice: {name}')
 
+    # ---------------- Team management ----------------
+    def list_teams(self) -> List[Dict[str, Any]]:
+        """List all teams"""
+        teams = self._config.get('teams', {})
+        return [
+            {
+                'name': name,
+                **({} if not isinstance(v, dict) else v)
+            }
+            for name, v in teams.items()
+        ]
+
+    def get_team(self, name: str) -> Optional[Dict[str, Any]]:
+        """Get a team by name"""
+        teams = self._config.get('teams', {})
+        return teams.get(name)
+
+    def create_team(
+        self,
+        name: str,
+        *,
+        orchestrator: str,
+        members: Optional[List[str]] = None,
+        sub_teams: Optional[List[str]] = None,
+        shared_brain: Optional[str] = None,
+        shared_thread: Optional[str] = None,
+        parent_team: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Create a new hierarchical team"""
+        if not name or not name.strip():
+            raise ValueError('team name is required')
+        if not orchestrator or not orchestrator.strip():
+            raise ValueError('orchestrator is required')
+        
+        members = members or []
+        sub_teams = sub_teams or []
+        
+        # Validate orchestrator exists
+        agents = self._config.get('agents', {})
+        if orchestrator not in agents:
+            raise ValueError(f'orchestrator agent not found: {orchestrator}')
+        
+        # Validate members exist
+        for agent_name in members:
+            if agent_name not in agents:
+                raise ValueError(f'member agent not found: {agent_name}')
+        
+        # Validate sub-teams exist (if creating nested teams)
+        teams = self._config.setdefault('teams', {})
+        for sub_team_name in sub_teams:
+            if sub_team_name not in teams:
+                raise ValueError(f'sub-team not found: {sub_team_name}')
+        
+        # Validate shared brain exists if provided
+        if shared_brain:
+            brains = self._config.get('brains', {})
+            if shared_brain not in brains:
+                raise ValueError(f'shared brain not found: {shared_brain}')
+        
+        # Validate parent team exists if provided
+        if parent_team:
+            if parent_team not in teams:
+                raise ValueError(f'parent team not found: {parent_team}')
+        
+        if name in teams:
+            raise ValueError(f'team already exists: {name}')
+        
+        team_data = {
+            'orchestrator': orchestrator,
+            'members': members,
+            'sub_teams': sub_teams,
+            'shared_brain': shared_brain,
+            'shared_thread': shared_thread,
+            'parent_team': parent_team,
+        }
+        teams[name] = team_data
+        
+        # Set parent relationship for sub-teams
+        for sub_team_name in sub_teams:
+            sub_team_data = teams.get(sub_team_name, {})
+            if sub_team_data:
+                sub_team_data['parent_team'] = name
+        
+        # Set as active team
+        self._config['active_team'] = name
+        
+        self._save_config()
+        return team_data
+
+    def delete_team(self, name: str):
+        """Delete a team"""
+        teams = self._config.get('teams', {})
+        if name in teams:
+            del teams[name]
+            if self._config.get('active_team') == name:
+                self._config['active_team'] = None
+            self._save_config()
+        else:
+            raise ValueError(f'unknown team: {name}')
+
+    def set_active_team(self, name: Optional[str]):
+        """Set active team"""
+        if name is not None:
+            teams = self._config.get('teams', {})
+            if name not in teams:
+                raise ValueError(f'unknown team: {name}')
+        self._config['active_team'] = name
+        self._save_config()
+
+    def get_active_team(self) -> Optional[str]:
+        """Get active team name"""
+        return self._config.get('active_team')
+
+    def update_team(self, name: str, updates: Dict[str, Any]) -> Dict[str, Any]:
+        """Update a team"""
+        teams = self._config.setdefault('teams', {})
+        if name not in teams:
+            raise ValueError(f'unknown team: {name}')
+        
+        current = teams[name]
+        agents = self._config.get('agents', {})
+        
+        # Validate orchestrator if being updated
+        if 'orchestrator' in updates:
+            orchestrator = updates['orchestrator']
+            if orchestrator not in agents:
+                raise ValueError(f'orchestrator agent not found: {orchestrator}')
+        
+        # Validate members if being updated
+        if 'members' in updates:
+            members = updates['members']
+            for agent_name in members:
+                if agent_name not in agents:
+                    raise ValueError(f'member agent not found: {agent_name}')
+        
+        # Validate sub-teams if being updated
+        if 'sub_teams' in updates:
+            sub_teams = updates['sub_teams']
+            for sub_team_name in sub_teams:
+                if sub_team_name not in teams:
+                    raise ValueError(f'sub-team not found: {sub_team_name}')
+        
+        # Validate shared_brain if being updated
+        if 'shared_brain' in updates and updates['shared_brain']:
+            shared_brain = updates['shared_brain']
+            brains = self._config.get('brains', {})
+            if shared_brain not in brains:
+                raise ValueError(f'shared brain not found: {shared_brain}')
+        
+        # Validate parent_team if being updated
+        if 'parent_team' in updates and updates['parent_team']:
+            parent_team = updates['parent_team']
+            if parent_team not in teams:
+                raise ValueError(f'parent team not found: {parent_team}')
+        
+        # Update fields
+        for key, value in updates.items():
+            if value is not None or key in ('shared_brain', 'shared_thread', 'parent_team'):
+                current[key] = value
+        
+        # Update parent relationships for sub-teams
+        if 'sub_teams' in updates:
+            # Clear old parent relationships
+            old_sub_teams = current.get('sub_teams', [])
+            for old_sub_team_name in old_sub_teams:
+                if old_sub_team_name in teams:
+                    old_sub_data = teams[old_sub_team_name]
+                    if old_sub_data.get('parent_team') == name:
+                        old_sub_data['parent_team'] = None
+            
+            # Set new parent relationships
+            for sub_team_name in updates['sub_teams']:
+                if sub_team_name in teams:
+                    sub_team_data = teams[sub_team_name]
+                    sub_team_data['parent_team'] = name
+        
+        teams[name] = current
+        self._save_config()
+        return current
+
+    def add_member_to_team(self, team_name: str, agent_name: str):
+        """Add an agent as a member to a team"""
+        teams = self._config.setdefault('teams', {})
+        if team_name not in teams:
+            raise ValueError(f'unknown team: {team_name}')
+        
+        # Validate agent exists
+        agents = self._config.get('agents', {})
+        if agent_name not in agents:
+            raise ValueError(f'agent not found: {agent_name}')
+        
+        team = teams[team_name]
+        members = team.get('members', [])
+        
+        if agent_name in members:
+            raise ValueError(f'agent already in team: {agent_name}')
+        
+        members.append(agent_name)
+        team['members'] = members
+        self._save_config()
+
+    def remove_member_from_team(self, team_name: str, agent_name: str):
+        """Remove an agent member from a team"""
+        teams = self._config.get('teams', {})
+        if team_name not in teams:
+            raise ValueError(f'unknown team: {team_name}')
+        
+        team = teams[team_name]
+        members = team.get('members', [])
+        
+        if agent_name not in members:
+            raise ValueError(f'agent not in team: {agent_name}')
+        
+        members.remove(agent_name)
+        team['members'] = members
+        
+        self._save_config()
+    
+    def add_sub_team_to_team(self, team_name: str, sub_team_name: str):
+        """Add a sub-team to a team"""
+        teams = self._config.setdefault('teams', {})
+        if team_name not in teams:
+            raise ValueError(f'unknown team: {team_name}')
+        
+        if sub_team_name not in teams:
+            raise ValueError(f'sub-team not found: {sub_team_name}')
+        
+        team = teams[team_name]
+        sub_teams = team.get('sub_teams', [])
+        
+        if sub_team_name in sub_teams:
+            raise ValueError(f'sub-team already in team: {sub_team_name}')
+        
+        sub_teams.append(sub_team_name)
+        team['sub_teams'] = sub_teams
+        
+        # Set parent relationship
+        sub_team_data = teams[sub_team_name]
+        sub_team_data['parent_team'] = team_name
+        
+        self._save_config()
+    
+    def remove_sub_team_from_team(self, team_name: str, sub_team_name: str):
+        """Remove a sub-team from a team"""
+        teams = self._config.get('teams', {})
+        if team_name not in teams:
+            raise ValueError(f'unknown team: {team_name}')
+        
+        team = teams[team_name]
+        sub_teams = team.get('sub_teams', [])
+        
+        if sub_team_name not in sub_teams:
+            raise ValueError(f'sub-team not in team: {sub_team_name}')
+        
+        sub_teams.remove(sub_team_name)
+        team['sub_teams'] = sub_teams
+        
+        # Clear parent relationship
+        if sub_team_name in teams:
+            sub_team_data = teams[sub_team_name]
+            sub_team_data['parent_team'] = None
+        
+        self._save_config()
+    
+    # Legacy methods for backward compatibility
+    def add_agent_to_team(self, team_name: str, agent_name: str):
+        """Legacy: Add an agent to a team (calls add_member_to_team)"""
+        return self.add_member_to_team(team_name, agent_name)
+    
+    def remove_agent_from_team(self, team_name: str, agent_name: str):
+        """Legacy: Remove an agent from a team (calls remove_member_from_team)"""
+        return self.remove_member_from_team(team_name, agent_name)
+

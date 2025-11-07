@@ -1822,6 +1822,345 @@ def agent_run(prompt: Optional[str], agent_name: Optional[str], thread_name: Opt
         sys.exit(1)
 
 
+# ========== Team commands ==========
+
+@cli.group()
+def team():
+    """Create, manage, and run teams of agents that work together."""
+    pass
+
+
+@team.command('create')
+@click.argument('name')
+@click.option('--orchestrator', '-o', required=True, help='Orchestrator agent name (top-level agent)')
+@click.option('--members', '-m', multiple=True, help='Member agent names (repeatable, e.g., -m agent1 -m agent2)')
+@click.option('--sub-teams', '-s', multiple=True, help='Sub-team names (repeatable, e.g., -s team1 -s team2)')
+@click.option('--shared-brain', '-b', help='Shared brain name for team memory (flows up hierarchy)')
+@click.option('--shared-thread', '-t', help='Shared thread name for team collaboration')
+def team_create(name: str, orchestrator: str, members: tuple, sub_teams: tuple, shared_brain: Optional[str], shared_thread: Optional[str]):
+    """Create a new hierarchical team with an orchestrator and optional members/sub-teams."""
+    config = Config()
+    try:
+        member_list = list(members) if members else []
+        sub_team_list = list(sub_teams) if sub_teams else []
+        
+        config.create_team(
+            name=name,
+            orchestrator=orchestrator,
+            members=member_list,
+            sub_teams=sub_team_list,
+            shared_brain=shared_brain,
+            shared_thread=shared_thread,
+        )
+        
+        parts = [f"orchestrator: {orchestrator}"]
+        if member_list:
+            parts.append(f"{len(member_list)} members")
+        if sub_team_list:
+            parts.append(f"{len(sub_team_list)} sub-teams")
+        if shared_brain:
+            parts.append(f"shared brain: {shared_brain}")
+        
+        click.echo(f"Team created: {name} ({', '.join(parts)})")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@team.command('list')
+def team_list():
+    """List all teams."""
+    config = Config()
+    try:
+        teams = config.list_teams()
+        active = config.get_active_team()
+        if not teams:
+            click.echo("No teams configured")
+            return
+        for t in teams:
+            marker = ' *' if t.get('name') == active else ''
+            orchestrator = t.get('orchestrator', 'N/A')
+            members = t.get('members', [])
+            sub_teams = t.get('sub_teams', [])
+            parent = t.get('parent_team')
+            
+            parts = [f"orchestrator: {orchestrator}"]
+            if members:
+                parts.append(f"{len(members)} members")
+            if sub_teams:
+                parts.append(f"{len(sub_teams)} sub-teams")
+            if parent:
+                parts.append(f"parent: {parent}")
+            
+            click.echo(f"{t.get('name')}{marker} ({', '.join(parts)})")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@team.command('show')
+@click.argument('name')
+def team_show(name: str):
+    """Show details of a team including hierarchy."""
+    config = Config()
+    from ffmcp.agents import Team as TeamClass
+    
+    try:
+        team_data = config.get_team(name)
+        if not team_data:
+            click.echo(f"Error: Team '{name}' not found", err=True)
+            sys.exit(1)
+        
+        # Create team instance to get hierarchy info
+        team = TeamClass(
+            config=config,
+            name=name,
+            orchestrator=team_data.get('orchestrator'),
+            members=team_data.get('members', []),
+            sub_teams=team_data.get('sub_teams', []),
+            shared_brain=team_data.get('shared_brain'),
+            shared_thread=team_data.get('shared_thread'),
+            parent_team=team_data.get('parent_team'),
+        )
+        
+        click.echo(f"Team: {name}")
+        click.echo(f"  Orchestrator: {team_data.get('orchestrator', 'N/A')} *")
+        
+        if team_data.get('parent_team'):
+            click.echo(f"  Parent Team: {team_data.get('parent_team')}")
+        
+        if team_data.get('shared_brain'):
+            click.echo(f"  Shared Brain: {team_data.get('shared_brain')}")
+        
+        if team_data.get('shared_thread'):
+            click.echo(f"  Shared Thread: {team_data.get('shared_thread')}")
+        
+        members = team_data.get('members', [])
+        if members:
+            click.echo(f"  Members ({len(members)}):")
+            for agent_name in members:
+                click.echo(f"    - {agent_name}")
+        
+        sub_teams = team_data.get('sub_teams', [])
+        if sub_teams:
+            click.echo(f"  Sub-teams ({len(sub_teams)}):")
+            for sub_team_name in sub_teams:
+                sub_team_data = config.get_team(sub_team_name)
+                if sub_team_data:
+                    sub_members = sub_team_data.get('members', [])
+                    sub_sub_teams = sub_team_data.get('sub_teams', [])
+                    total_agents = len(sub_members) + 1  # +1 for orchestrator
+                    if sub_sub_teams:
+                        # Count agents recursively
+                        sub_team_instance = team.get_sub_team(sub_team_name)
+                        if sub_team_instance:
+                            total_agents = len(sub_team_instance.get_all_agents_recursive())
+                    click.echo(f"    - {sub_team_name} ({total_agents} agents)")
+        
+        # Show hierarchy context
+        all_agents = team.get_all_agents_recursive()
+        click.echo(f"  Total Agents (recursive): {len(all_agents)}")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@team.command('use')
+@click.argument('name')
+def team_use(name: str):
+    """Set active team."""
+    config = Config()
+    try:
+        config.set_active_team(name)
+        click.echo(f"Active team: {name}")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@team.command('current')
+def team_current():
+    """Show active team."""
+    config = Config()
+    active = config.get_active_team()
+    if active:
+        click.echo(active)
+    else:
+        click.echo("No active team")
+
+
+@team.command('delete')
+@click.argument('name')
+def team_delete(name: str):
+    """Delete a team."""
+    config = Config()
+    try:
+        config.delete_team(name)
+        click.echo(f"Team deleted: {name}")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@team.command('add-member')
+@click.argument('team_name')
+@click.argument('agent_name')
+def team_add_member(team_name: str, agent_name: str):
+    """Add an agent as a member to a team."""
+    config = Config()
+    try:
+        config.add_member_to_team(team_name, agent_name)
+        click.echo(f"Added {agent_name} as member to team {team_name}")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@team.command('remove-member')
+@click.argument('team_name')
+@click.argument('agent_name')
+def team_remove_member(team_name: str, agent_name: str):
+    """Remove an agent member from a team."""
+    config = Config()
+    try:
+        config.remove_member_from_team(team_name, agent_name)
+        click.echo(f"Removed {agent_name} from team {team_name}")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@team.command('add-sub-team')
+@click.argument('team_name')
+@click.argument('sub_team_name')
+def team_add_sub_team(team_name: str, sub_team_name: str):
+    """Add a sub-team to a team."""
+    config = Config()
+    try:
+        config.add_sub_team_to_team(team_name, sub_team_name)
+        click.echo(f"Added {sub_team_name} as sub-team to {team_name}")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@team.command('remove-sub-team')
+@click.argument('team_name')
+@click.argument('sub_team_name')
+def team_remove_sub_team(team_name: str, sub_team_name: str):
+    """Remove a sub-team from a team."""
+    config = Config()
+    try:
+        config.remove_sub_team_from_team(team_name, sub_team_name)
+        click.echo(f"Removed {sub_team_name} from team {team_name}")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@team.command('set-orchestrator')
+@click.argument('team_name')
+@click.argument('agent_name')
+def team_set_orchestrator(team_name: str, agent_name: str):
+    """Set the orchestrator agent for a team."""
+    config = Config()
+    try:
+        config.update_team(team_name, {'orchestrator': agent_name})
+        click.echo(f"Set {agent_name} as orchestrator for team {team_name}")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+# Legacy commands for backward compatibility
+@team.command('add-agent')
+@click.argument('team_name')
+@click.argument('agent_name')
+def team_add_agent(team_name: str, agent_name: str):
+    """Legacy: Add an agent to a team (calls add-member)."""
+    team_add_member(team_name, agent_name)
+
+
+@team.command('remove-agent')
+@click.argument('team_name')
+@click.argument('agent_name')
+def team_remove_agent(team_name: str, agent_name: str):
+    """Legacy: Remove an agent from a team (calls remove-member)."""
+    team_remove_member(team_name, agent_name)
+
+
+@team.command('set-coordinator')
+@click.argument('team_name')
+@click.argument('agent_name')
+def team_set_coordinator(team_name: str, agent_name: str):
+    """Legacy: Set coordinator (calls set-orchestrator)."""
+    team_set_orchestrator(team_name, agent_name)
+
+
+@team.command('run')
+@click.argument('task', required=False)
+@click.option('--team', 'team_name', help='Team name (defaults to active team)')
+@click.option('--thread', '-t', help='Thread name (defaults to shared thread)')
+def team_run(task: Optional[str], team_name: Optional[str], thread: Optional[str]):
+    """Run a task with a hierarchical team. The orchestrator agent will orchestrate the collaboration."""
+    config = Config()
+    from ffmcp.agents import Team as TeamClass
+    
+    if not task:
+        task = sys.stdin.read()
+    if not task:
+        click.echo("Error: No task provided", err=True)
+        sys.exit(1)
+    
+    if not team_name:
+        team_name = config.get_active_team()
+    if not team_name:
+        click.echo("Error: No team specified and no active team set.", err=True)
+        sys.exit(1)
+    
+    team_data = config.get_team(team_name)
+    if not team_data:
+        click.echo(f"Error: Unknown team '{team_name}'", err=True)
+        sys.exit(1)
+    
+    try:
+        team = TeamClass(
+            config=config,
+            name=team_name,
+            orchestrator=team_data.get('orchestrator'),
+            members=team_data.get('members', []),
+            sub_teams=team_data.get('sub_teams', []),
+            shared_brain=team_data.get('shared_brain'),
+            shared_thread=thread or team_data.get('shared_thread'),
+            parent_team=team_data.get('parent_team'),
+        )
+        
+        result = team.run(
+            task=task,
+            thread_name=thread,
+        )
+        
+        if result.get('success'):
+            click.echo(result.get('result', ''))
+        else:
+            click.echo(f"Error: {result.get('error', 'Unknown error')}", err=True)
+            sys.exit(1)
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
 # ========== Voiceover/TTS commands ==========
 
 @cli.group()

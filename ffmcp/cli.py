@@ -831,6 +831,127 @@ def create(name: str, instructions: str, model: str, tools: Optional, temperatur
         sys.exit(1)
 
 
+# ========== Anthropic/Claude-specific commands ==========
+
+@cli.group()
+def claude():
+    """Anthropic Claude-specific commands"""
+    pass
+
+
+@claude.command()
+@click.argument('prompt')
+@click.argument('images', nargs=-1, required=True)
+@click.option('--model', '-m', default='claude-3-5-sonnet-20241022', help='Vision model to use')
+@click.option('--temperature', '-t', type=float, help='Temperature')
+@click.option('--max-tokens', type=int, help='Maximum tokens')
+@click.option('--output', '-o', type=click.File('w', encoding='utf-8'), help='Write output to file')
+def vision(prompt: str, images: tuple, model: str, temperature: Optional[float], 
+           max_tokens: Optional[int], output: Optional):
+    """Analyze images with Claude vision models"""
+    config = Config()
+    try:
+        provider = get_provider('anthropic', config)
+        if not hasattr(provider, 'vision'):
+            click.echo("Error: Vision not supported by this provider", err=True)
+            sys.exit(1)
+        
+        params = {'model': model}
+        if temperature is not None:
+            params['temperature'] = temperature
+        if max_tokens:
+            params['max_tokens'] = max_tokens
+        
+        result = provider.vision(prompt, list(images), **params)
+        click.echo(result)
+        if output:
+            output.write(result)
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@claude.command()
+@click.argument('prompt')
+@click.argument('urls', nargs=-1, required=True)
+@click.option('--model', '-m', default='claude-3-5-sonnet-20241022', help='Vision model to use')
+@click.option('--temperature', '-t', type=float, help='Temperature')
+@click.option('--max-tokens', type=int, help='Maximum tokens')
+@click.option('--output', '-o', type=click.File('w', encoding='utf-8'), help='Write output to file')
+def vision_urls(prompt: str, urls: tuple, model: str, temperature: Optional[float], 
+                max_tokens: Optional[int], output: Optional):
+    """Analyze images from URLs with Claude vision models"""
+    config = Config()
+    try:
+        provider = get_provider('anthropic', config)
+        if not hasattr(provider, 'vision_urls'):
+            click.echo("Error: Vision URLs not supported by this provider", err=True)
+            sys.exit(1)
+        
+        params = {'model': model}
+        if temperature is not None:
+            params['temperature'] = temperature
+        if max_tokens:
+            params['max_tokens'] = max_tokens
+        
+        result = provider.vision_urls(prompt, list(urls), **params)
+        click.echo(result)
+        if output:
+            output.write(result)
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@claude.command()
+@click.argument('prompt')
+@click.option('--tools', '-t', type=click.File('r', encoding='utf-8'), help='Tools JSON file')
+@click.option('--model', '-m', help='Model to use')
+@click.option('--temperature', type=float, help='Temperature')
+@click.option('--max-tokens', type=int, help='Maximum tokens')
+@click.option('--system', '-s', help='System message')
+@click.option('--output', '-o', type=click.File('w', encoding='utf-8'), help='Write output to file')
+def tools(prompt: str, tools: Optional, model: Optional[str], temperature: Optional[float], 
+          max_tokens: Optional[int], system: Optional[str], output: Optional):
+    """Chat with Claude using tools/function calling"""
+    config = Config()
+    try:
+        provider = get_provider('anthropic', config)
+        if not hasattr(provider, 'chat_with_tools'):
+            click.echo("Error: Tools not supported by this provider", err=True)
+            sys.exit(1)
+        
+        messages = []
+        if system:
+            messages.append({"role": "system", "content": system})
+        messages.append({"role": "user", "content": prompt})
+        
+        tools_list = []
+        if tools:
+            tools_list = json.load(tools)
+        
+        params = {}
+        if model:
+            params['model'] = model
+        if temperature is not None:
+            params['temperature'] = temperature
+        if max_tokens:
+            params['max_tokens'] = max_tokens
+        
+        result = provider.chat_with_tools(messages, tools_list, **params)
+        
+        output_text = json.dumps(result, indent=2)
+        click.echo(output_text)
+        if output:
+            output.write(output_text)
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
 # ========== Agent commands ==========
 
 @cli.group()

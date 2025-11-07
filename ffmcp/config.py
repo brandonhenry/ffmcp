@@ -2,7 +2,7 @@
 import os
 import json
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List, Dict, Any
 import logging
 from datetime import datetime, timezone
 
@@ -334,4 +334,160 @@ class Config:
         if action in actions:
             del actions[action]
             self._save_config()
+
+    # ---------------- Thread management ----------------
+    def list_threads(self, agent_name: str) -> List[Dict[str, Any]]:
+        """List all threads for an agent"""
+        threads = self._config.get('threads', {}).get(agent_name, {})
+        active_thread = self.get_active_thread(agent_name)
+        return [
+            {
+                'name': name,
+                'message_count': len(thread.get('messages', [])),
+                'created_at': thread.get('created_at'),
+                'active': name == active_thread,
+            }
+            for name, thread in threads.items()
+        ]
+
+    def get_thread(self, agent_name: str, thread_name: str) -> Dict:
+        """Get thread data"""
+        threads = self._config.get('threads', {}).get(agent_name, {})
+        return threads.get(thread_name) or {}
+
+    def create_thread(self, agent_name: str, thread_name: str) -> Dict:
+        """Create a new thread for an agent"""
+        if not agent_name or not agent_name.strip():
+            raise ValueError('agent name is required')
+        if not thread_name or not thread_name.strip():
+            raise ValueError('thread name is required')
+        
+        # Verify agent exists
+        agents = self._config.get('agents', {})
+        if agent_name not in agents:
+            raise ValueError(f'unknown agent: {agent_name}')
+        
+        threads = self._config.setdefault('threads', {})
+        agent_threads = threads.setdefault(agent_name, {})
+        
+        if thread_name in agent_threads:
+            raise ValueError(f'thread already exists: {thread_name}')
+        
+        thread_data = {
+            'messages': [],
+            'created_at': datetime.now(timezone.utc).isoformat(),
+        }
+        agent_threads[thread_name] = thread_data
+        
+        # Set as active thread for this agent
+        active_threads = self._config.setdefault('active_threads', {})
+        active_threads[agent_name] = thread_name
+        
+        self._save_config()
+        return thread_data
+
+    def delete_thread(self, agent_name: str, thread_name: str):
+        """Delete a thread"""
+        threads = self._config.get('threads', {}).get(agent_name, {})
+        if thread_name in threads:
+            del threads[thread_name]
+            # If this was the active thread, clear it
+            active_threads = self._config.get('active_threads', {})
+            if active_threads.get(agent_name) == thread_name:
+                del active_threads[agent_name]
+            self._save_config()
+
+    def set_active_thread(self, agent_name: str, thread_name: Optional[str]):
+        """Set active thread for an agent"""
+        if not agent_name or not agent_name.strip():
+            raise ValueError('agent name is required')
+        
+        # Verify agent exists
+        agents = self._config.get('agents', {})
+        if agent_name not in agents:
+            raise ValueError(f'unknown agent: {agent_name}')
+        
+        if thread_name is not None:
+            # Verify thread exists
+            threads = self._config.get('threads', {}).get(agent_name, {})
+            if thread_name not in threads:
+                raise ValueError(f'unknown thread: {thread_name}')
+        
+        active_threads = self._config.setdefault('active_threads', {})
+        active_threads[agent_name] = thread_name
+        self._save_config()
+
+    def get_active_thread(self, agent_name: str) -> Optional[str]:
+        """Get active thread name for an agent"""
+        active_threads = self._config.get('active_threads', {})
+        return active_threads.get(agent_name)
+
+    def clear_thread(self, agent_name: str, thread_name: str):
+        """Clear all messages from a thread"""
+        threads = self._config.get('threads', {}).get(agent_name, {})
+        if thread_name not in threads:
+            raise ValueError(f'unknown thread: {thread_name}')
+        threads[thread_name]['messages'] = []
+        self._save_config()
+
+    def add_thread_message(self, agent_name: str, thread_name: str, role: str, content: str):
+        """Add a message to a thread"""
+        threads = self._config.setdefault('threads', {})
+        agent_threads = threads.setdefault(agent_name, {})
+        
+        if thread_name not in agent_threads:
+            # Auto-create thread if it doesn't exist
+            agent_threads[thread_name] = {
+                'messages': [],
+                'created_at': datetime.now(timezone.utc).isoformat(),
+            }
+        
+        agent_threads[thread_name]['messages'].append({
+            'role': role,
+            'content': content,
+            'timestamp': datetime.now(timezone.utc).isoformat(),
+        })
+        self._save_config()
+
+    def get_thread_messages(self, agent_name: str, thread_name: Optional[str] = None) -> List[Dict[str, str]]:
+        """Get messages from a thread. If thread_name is None, uses active thread."""
+        if thread_name is None:
+            thread_name = self.get_active_thread(agent_name)
+            if not thread_name:
+                return []
+        
+        thread = self.get_thread(agent_name, thread_name)
+        messages = thread.get('messages', [])
+        # Return in format expected by chat API (role, content)
+        return [
+            {'role': msg.get('role'), 'content': msg.get('content', '')}
+            for msg in messages
+        ]
+
+    def save_thread_messages(self, agent_name: str, thread_name: Optional[str], messages: List[Dict[str, str]]):
+        """Save messages to a thread. If thread_name is None, uses active thread."""
+        if thread_name is None:
+            thread_name = self.get_active_thread(agent_name)
+            if not thread_name:
+                # Auto-create thread if none exists
+                thread_name = 'default'
+                self.create_thread(agent_name, thread_name)
+        
+        threads = self._config.setdefault('threads', {})
+        agent_threads = threads.setdefault(agent_name, {})
+        
+        if thread_name not in agent_threads:
+            agent_threads[thread_name] = {
+                'messages': [],
+                'created_at': datetime.now(timezone.utc).isoformat(),
+            }
+        
+        # Convert messages to thread format and append
+        for msg in messages:
+            agent_threads[thread_name]['messages'].append({
+                'role': msg.get('role'),
+                'content': msg.get('content', ''),
+                'timestamp': datetime.now(timezone.utc).isoformat(),
+            })
+        self._save_config()
 

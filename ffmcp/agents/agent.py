@@ -58,7 +58,16 @@ class Agent:
         return [act.as_tool_definition() for act in self._actions.values()]
 
     # ---------------- Run ----------------
-    def run(self, *, input_text: str, images: Optional[List[str]] = None, extra_messages: Optional[List[Dict[str, Any]]] = None) -> str:
+    def run(self, *, input_text: str, images: Optional[List[str]] = None, extra_messages: Optional[List[Dict[str, Any]]] = None, thread_name: Optional[str] = None) -> str:
+        # Load thread messages if available
+        thread_messages = []
+        if thread_name is None:
+            # Try to get active thread
+            thread_name = self.config.get_active_thread(self.name)
+        
+        if thread_name:
+            thread_messages = self.config.get_thread_messages(self.name, thread_name)
+        
         # Build messages
         messages: List[Dict[str, Any]] = []
         # Optional memory context from brain
@@ -78,13 +87,23 @@ class Agent:
                 pass
         if self.instructions:
             messages.append({"role": "system", "content": self.instructions})
-
+        
+        # Add thread messages (excluding system messages which we already have)
+        for msg in thread_messages:
+            if msg.get('role') != 'system':
+                messages.append(msg)
+        
         # Optional: include image content upfront if provided
         if images:
             # If provider supports direct vision with file paths, use a one-shot call and return
             vision_fn = getattr(self._provider, 'vision', None)
             if vision_fn:
-                return vision_fn(input_text, images, model=self.model)
+                result = vision_fn(input_text, images, model=self.model)
+                # Save to thread
+                if thread_name:
+                    self.config.add_thread_message(self.name, thread_name, 'user', input_text)
+                    self.config.add_thread_message(self.name, thread_name, 'assistant', result)
+                return result
 
         messages.append({"role": "user", "content": input_text})
         if extra_messages:
@@ -93,12 +112,18 @@ class Agent:
         tools = self.get_tool_definitions() if self._actions else None
         # If there are tools and provider is OpenAI, run tool-calling loop
         if tools and getattr(self._provider, 'chat_with_tools', None):
-            return self._run_with_tools(messages, tools)
+            result = self._run_with_tools(messages, tools, thread_name=thread_name)
+        else:
+            # Fallback: plain chat
+            result = self._provider.chat(messages, model=self.model)
+            # Save conversation to thread
+            if thread_name:
+                self.config.add_thread_message(self.name, thread_name, 'user', input_text)
+                self.config.add_thread_message(self.name, thread_name, 'assistant', result)
+        
+        return result
 
-        # Fallback: plain chat
-        return self._provider.chat(messages, model=self.model)
-
-    def _run_with_tools(self, messages: List[Dict[str, Any]], tools: List[Dict[str, Any]], *, max_rounds: int = 5) -> str:
+    def _run_with_tools(self, messages: List[Dict[str, Any]], tools: List[Dict[str, Any]], *, max_rounds: int = 5, thread_name: Optional[str] = None) -> str:
         rounds = 0
         content_final: Optional[str] = None
         while rounds < max_rounds:
@@ -152,6 +177,18 @@ class Agent:
                 )
 
             # Continue loop; model will see tool results
+        
+        # Save all messages to thread (excluding system messages)
+        if thread_name:
+            for msg in messages:
+                role = msg.get('role')
+                if role in ('user', 'assistant', 'tool'):
+                    content = msg.get('content', '')
+                    if role == 'tool':
+                        # For tool messages, include the function name
+                        content = f"[{msg.get('name', 'tool')}] {content}"
+                    self.config.add_thread_message(self.name, thread_name, role, content)
+        
         return content_final or ""
 
 

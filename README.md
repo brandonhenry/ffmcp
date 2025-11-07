@@ -133,8 +133,19 @@ ffmcp agent use myagent
 # Show details
 ffmcp agent show
 
-# Run the agent
+# Thread Management (conversation history)
+ffmcp agent thread create myagent thread1
+ffmcp agent thread list myagent
+ffmcp agent thread use myagent thread1
+ffmcp agent thread current myagent
+ffmcp agent thread clear myagent thread1
+ffmcp agent thread delete myagent thread1
+
+# Run the agent (uses active thread automatically)
 ffmcp agent run "Plan a 3-day trip to Paris and fetch top sights"
+
+# Run with specific thread
+ffmcp agent run "Continue planning" --thread thread1
 
 # Manage properties and actions
 ffmcp agent prop set myagent timezone UTC

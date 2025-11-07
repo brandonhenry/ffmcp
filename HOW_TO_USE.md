@@ -94,13 +94,35 @@ ffmcp agent create myagent -p openai -m gpt-4o-mini -f instructions.txt
 # Optionally attach a brain for memory and document search
 ffmcp agent create research -p openai -m gpt-4o-mini --brain mybrain -f research_instructions.txt
 
+# Thread Management (conversation history per agent)
+# Create a thread for an agent
+ffmcp agent thread create myagent conversation1
+
+# List all threads for an agent
+ffmcp agent thread list myagent
+
+# Set active thread (agent run will use this thread)
+ffmcp agent thread use myagent conversation1
+
+# Show active thread
+ffmcp agent thread current myagent
+
+# Clear messages from a thread (keeps thread, clears history)
+ffmcp agent thread clear myagent conversation1
+
+# Delete a thread entirely
+ffmcp agent thread delete myagent conversation1
+
 # Enable/disable actions
 ffmcp agent action enable myagent web_fetch
 ffmcp agent action disable myagent generate_image
 
-# Run the active agent
+# Run the active agent (automatically uses active thread)
 ffmcp agent use myagent
 ffmcp agent run "Find and summarize today's top AI news"
+
+# Run with specific thread
+ffmcp agent run "Continue the conversation" --thread conversation1
 ```
 
 ## OpenAI Features

@@ -1156,12 +1156,117 @@ def agent_action_disable(name: str, action: str):
         sys.exit(1)
 
 
+@agent.group('thread')
+def agent_thread():
+    """Manage agent threads (conversation history)."""
+    pass
+
+
+@agent_thread.command('create')
+@click.argument('agent_name')
+@click.argument('thread_name')
+def agent_thread_create(agent_name: str, thread_name: str):
+    """Create a new thread for an agent."""
+    config = Config()
+    try:
+        config.create_thread(agent_name, thread_name)
+        click.echo(f"Thread created: {thread_name} (active for {agent_name})")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@agent_thread.command('list')
+@click.argument('agent_name')
+def agent_thread_list(agent_name: str):
+    """List threads for an agent."""
+    config = Config()
+    try:
+        threads = config.list_threads(agent_name)
+        if not threads:
+            click.echo(f"No threads found for agent '{agent_name}'")
+            return
+        for thread in threads:
+            marker = ' *' if thread.get('active') else ''
+            msg_count = thread.get('message_count', 0)
+            created = thread.get('created_at', 'unknown')
+            click.echo(f"{thread['name']}{marker} ({msg_count} messages, created: {created})")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@agent_thread.command('use')
+@click.argument('agent_name')
+@click.argument('thread_name')
+def agent_thread_use(agent_name: str, thread_name: str):
+    """Set active thread for an agent."""
+    config = Config()
+    try:
+        config.set_active_thread(agent_name, thread_name)
+        click.echo(f"Active thread for {agent_name}: {thread_name}")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@agent_thread.command('current')
+@click.argument('agent_name')
+def agent_thread_current(agent_name: str):
+    """Show active thread for an agent."""
+    config = Config()
+    try:
+        thread_name = config.get_active_thread(agent_name)
+        if thread_name:
+            click.echo(thread_name)
+        else:
+            click.echo(f"No active thread for agent '{agent_name}'")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@agent_thread.command('clear')
+@click.argument('agent_name')
+@click.argument('thread_name')
+def agent_thread_clear(agent_name: str, thread_name: str):
+    """Clear all messages from a thread."""
+    config = Config()
+    try:
+        config.clear_thread(agent_name, thread_name)
+        click.echo(f"Thread cleared: {thread_name}")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
+@agent_thread.command('delete')
+@click.argument('agent_name')
+@click.argument('thread_name')
+def agent_thread_delete(agent_name: str, thread_name: str):
+    """Delete a thread."""
+    config = Config()
+    try:
+        config.delete_thread(agent_name, thread_name)
+        click.echo(f"Thread deleted: {thread_name}")
+    except Exception as e:
+        error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+        click.echo(f"Error: {error_msg}", err=True)
+        sys.exit(1)
+
+
 @agent.command('run')
 @click.argument('prompt', required=False)
 @click.option('--agent', 'agent_name', help='Agent name (defaults to active agent)')
+@click.option('--thread', 'thread_name', help='Thread name (defaults to active thread)')
 @click.option('--image', 'images', multiple=True, type=click.Path(exists=True), help='Local image file(s) to include')
-def agent_run(prompt: Optional[str], agent_name: Optional[str], images: tuple):
-    """Run an agent with a prompt (reads stdin if omitted)."""
+def agent_run(prompt: Optional[str], agent_name: Optional[str], thread_name: Optional[str], images: tuple):
+    """Run an agent with a prompt (reads stdin if omitted). Uses active thread if available."""
     config = Config()
     if not prompt:
         prompt = sys.stdin.read()
@@ -1177,6 +1282,11 @@ def agent_run(prompt: Optional[str], agent_name: Optional[str], images: tuple):
     if not spec:
         click.echo(f"Error: Unknown agent '{agent_name}'", err=True)
         sys.exit(1)
+    
+    # If no thread specified, try to use active thread
+    if not thread_name:
+        thread_name = config.get_active_thread(agent_name)
+    
     try:
         ag = Agent(
             config=config,
@@ -1188,7 +1298,7 @@ def agent_run(prompt: Optional[str], agent_name: Optional[str], images: tuple):
             properties=spec.get('properties') or {},
             actions_config=spec.get('actions') or {},
         )
-        result = ag.run(input_text=prompt, images=list(images) if images else None)
+        result = ag.run(input_text=prompt, images=list(images) if images else None, thread_name=thread_name)
         click.echo(result)
     except Exception as e:
         error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')

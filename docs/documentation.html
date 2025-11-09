@@ -507,6 +507,21 @@
 <code><span class="prompt">$</span> ffmcp generate "Summarize this" --max-tokens 100</code>
                 </div>
 
+                <h3>With System Message</h3>
+                <div class="command-example">
+<code><span class="comment"># Set the AI's role/personality</span>
+<span class="prompt">$</span> ffmcp generate "Solve this math problem" --system "You are a helpful math tutor"</code>
+                </div>
+
+                <h3>Output Formats</h3>
+                <div class="command-example">
+<code><span class="comment"># Output as JSON object</span>
+<span class="prompt">$</span> ffmcp generate "Write a haiku" --json
+
+<span class="comment"># Output as JSON array</span>
+<span class="prompt">$</span> ffmcp generate "Write a haiku" --array</code>
+                </div>
+
                 <h3>Read from File</h3>
                 <div class="command-example">
 <code><span class="comment"># Read prompt from file</span>
@@ -558,6 +573,15 @@
                 <h3>Run the Agent</h3>
                 <div class="command-example">
 <code><span class="prompt">$</span> ffmcp agent run "Plan a 3-day trip to Paris and fetch top sights"</code>
+                </div>
+
+                <h3>Output Formats</h3>
+                <div class="command-example">
+<code><span class="comment"># Output as JSON</span>
+<span class="prompt">$</span> ffmcp agent run "Write a summary" --json
+
+<span class="comment"># Output as array</span>
+<span class="prompt">$</span> ffmcp agent run "Write a summary" --array</code>
                 </div>
 
                 <h3>Actions and Properties</h3>
@@ -629,6 +653,15 @@
 <span class="prompt">$</span> ffmcp team run "Create a summary of recent AI breakthroughs"</code>
                 </div>
 
+                <h3>Output Formats</h3>
+                <div class="command-example">
+<code><span class="comment"># Output as JSON</span>
+<span class="prompt">$</span> ffmcp team run "Create a report" --team main-team --json
+
+<span class="comment"># Output as array</span>
+<span class="prompt">$</span> ffmcp team run "Create a report" --team main-team --array</code>
+                </div>
+
                 <h3>Manage Teams</h3>
                 <div class="command-example">
 <code><span class="comment"># List all teams</span>
@@ -684,6 +717,15 @@
                 <div class="command-example">
 <code><span class="comment"># Set the AI's role/personality</span>
 <span class="prompt">$</span> ffmcp chat "Solve this math problem" -s "You are a helpful math tutor" -p openai</code>
+                </div>
+
+                <h3>Output Formats</h3>
+                <div class="command-example">
+<code><span class="comment"># Output as JSON</span>
+<span class="prompt">$</span> ffmcp chat "Write a haiku" --json
+
+<span class="comment"># Output as array</span>
+<span class="prompt">$</span> ffmcp chat "Write a haiku" --array</code>
                 </div>
             </section>
 
@@ -1299,6 +1341,9 @@ done</code>
 
                         <dt><code>--json</code></dt>
                         <dd>Output as JSON (for some commands)</dd>
+
+                        <dt><code>--array</code></dt>
+                        <dd>Output as array (for generate command)</dd>
 
                         <dt><code>-i input.txt</code></dt>
                         <dd>Read input from file</dd>

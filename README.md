@@ -168,11 +168,20 @@ ffmcp generate "Explain quantum computing" -p perplexity -m llama-3.1-sonar-larg
 # Stream the response
 ffmcp generate "Tell me a story" -s
 
+# With system message
+ffmcp generate "Solve this math problem" --system "You are a helpful math tutor"
+
 # Read from file
 ffmcp generate -i prompt.txt -o output.txt
 
 # Pipe input
 echo "Summarize this" | ffmcp generate
+
+# Output as JSON
+ffmcp generate "Write a haiku" --json
+
+# Output as array
+ffmcp generate "Write a haiku" --array
 ```
 
 ### 3. Chat Mode
@@ -187,6 +196,12 @@ ffmcp chat "What is 2+2?" -s "You are a helpful math tutor"
 # Chat with thread (maintains conversation history)
 ffmcp chat "Hello" -t conversation1
 ffmcp chat "What did I just say?" -t conversation1  # Remembers previous messages
+
+# Output as JSON
+ffmcp chat "Write a haiku" --json
+
+# Output as array
+ffmcp chat "Write a haiku" --array
 
 # Thread management
 ffmcp thread create conversation1
@@ -232,6 +247,12 @@ ffmcp agent run "Plan a 3-day trip to Paris and fetch top sights"
 # Run with specific thread
 ffmcp agent run "Continue planning" --thread thread1
 
+# Output as JSON
+ffmcp agent run "Write a summary" --json
+
+# Output as array
+ffmcp agent run "Write a summary" --array
+
 # Manage properties and actions
 ffmcp agent prop set myagent timezone UTC
 ffmcp agent action enable myagent web_fetch
@@ -275,6 +296,12 @@ ffmcp team create main-team -o orchestrator -s research-sub-team -s writing-sub-
 
 # Run a task with the hierarchical team (orchestrator delegates as needed)
 ffmcp team run "Research and write a comprehensive report on quantum computing" --team main-team
+
+# Output as JSON
+ffmcp team run "Create a report" --team main-team --json
+
+# Output as array
+ffmcp team run "Create a report" --team main-team --array
 
 # List teams
 ffmcp team list

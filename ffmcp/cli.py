@@ -80,6 +80,22 @@ logging.basicConfig(level=_level, format='%(asctime)s %(levelname)s %(name)s: %(
 logger = logging.getLogger('ffmcp.cli')
 
 
+def format_text_output(result: str, json_output: bool, array_output: bool, 
+                       provider: Optional[str] = None, model: Optional[str] = None) -> str:
+    """Format text output as plain text, JSON object, or JSON array."""
+    if json_output:
+        output_data = {'result': result}
+        if provider:
+            output_data['provider'] = provider
+        if model:
+            output_data['model'] = model
+        return json.dumps(output_data, indent=2)
+    elif array_output:
+        return json.dumps([result], indent=2)
+    else:
+        return result
+
+
 @click.group()
 @click.version_option(version="0.1.0")
 def cli():
@@ -95,11 +111,14 @@ def cli():
 @click.option('--temperature', '-t', type=float, help='Temperature for generation')
 @click.option('--max-tokens', type=int, help='Maximum tokens to generate')
 @click.option('--stream', '-s', is_flag=True, help='Stream the response')
+@click.option('--system', help='System message')
 @click.option('--input', '-i', type=click.File('r', encoding='utf-8'), help='Read prompt from file')
 @click.option('--output', '-o', type=click.File('w', encoding='utf-8'), help='Write output to file')
+@click.option('--json', 'json_output', is_flag=True, help='Output as JSON')
+@click.option('--array', 'array_output', is_flag=True, help='Output as array')
 def generate(prompt: Optional[str], provider: str, model: Optional[str], 
              temperature: Optional[float], max_tokens: Optional[int], 
-             stream: bool, input: Optional, output: Optional):
+             stream: bool, system: Optional[str], input: Optional, output: Optional, json_output: bool, array_output: bool):
     """Generate text using AI"""
     config = Config()
     
@@ -115,12 +134,13 @@ def generate(prompt: Optional[str], provider: str, model: Optional[str],
         prompt_text = sys.stdin.read()
     
     logger.info(
-        "generate start provider=%s model=%s temperature=%s max_tokens=%s stream=%s input_source=%s output=%s",
+        "generate start provider=%s model=%s temperature=%s max_tokens=%s stream=%s system=%s input_source=%s output=%s",
         provider,
         model or '(default)',
         temperature,
         max_tokens,
         stream,
+        bool(system),
         input_source,
         bool(output),
     )
@@ -160,23 +180,92 @@ def generate(prompt: Optional[str], provider: str, model: Optional[str],
     
     # Generate
     try:
-        if stream:
-            logger.info("streaming generation started")
-            _chunk_count = 0
-            for chunk in provider_instance.generate_stream(prompt_text, **params):
-                _chunk_count += 1
-                click.echo(chunk, nl=False)
+        # If system message is provided, use chat() instead of generate()
+        if system:
+            messages = [{"role": "system", "content": system}, {"role": "user", "content": prompt_text}]
+            
+            if stream:
+                logger.info("streaming generation with system message started")
+                # Use chat API with streaming
+                if hasattr(provider_instance, 'client') and hasattr(provider_instance.client, 'chat'):
+                    # Direct streaming chat call
+                    stream_params = {
+                        'model': params.get('model', provider_instance.get_default_model()),
+                        'messages': messages,
+                        'temperature': params.get('temperature', 0.7),
+                        'stream': True,
+                    }
+                    if params.get('max_tokens'):
+                        stream_params['max_tokens'] = params['max_tokens']
+                    
+                    stream_response = provider_instance.client.chat.completions.create(**stream_params)
+                    _chunk_count = 0
+                    for chunk in stream_response:
+                        if chunk.choices and chunk.choices[0].delta.content:
+                            content = chunk.choices[0].delta.content
+                            _chunk_count += 1
+                            click.echo(content, nl=False)
+                            if output:
+                                output.write(content)
+                    click.echo()  # Newline after streaming
+                    logger.info("streaming generation finished chunks=%d", _chunk_count)
+                else:
+                    # Fallback: use generate_stream (won't have system message)
+                    logger.warning("Streaming with system message not fully supported, falling back to generate_stream")
+                    _chunk_count = 0
+                    for chunk in provider_instance.generate_stream(prompt_text, **params):
+                        _chunk_count += 1
+                        click.echo(chunk, nl=False)
+                        if output:
+                            output.write(chunk)
+                    click.echo()  # Newline after streaming
+                    logger.info("streaming generation finished chunks=%d", _chunk_count)
+            else:
+                logger.debug("calling provider.chat with system message params=%s", params)
+                result = provider_instance.chat(messages, **params)
+                
+                # Handle output format
+                output_text = format_text_output(
+                    result,
+                    json_output,
+                    array_output,
+                    provider=provider,
+                    model=model or provider_instance.get_default_model() if hasattr(provider_instance, 'get_default_model') else None
+                )
+                
+                click.echo(output_text)
                 if output:
-                    output.write(chunk)
-            click.echo()  # Newline after streaming
-            logger.info("streaming generation finished chunks=%d", _chunk_count)
+                    output.write(output_text)
+                logger.info("generation finished result_length=%d", len(result or ''))
         else:
-            logger.debug("calling provider.generate with params=%s", params)
-            result = provider_instance.generate(prompt_text, **params)
-            click.echo(result)
-            if output:
-                output.write(result)
-            logger.info("generation finished result_length=%d", len(result or ''))
+            # No system message, use regular generate()
+            if stream:
+                logger.info("streaming generation started")
+                _chunk_count = 0
+                for chunk in provider_instance.generate_stream(prompt_text, **params):
+                    _chunk_count += 1
+                    click.echo(chunk, nl=False)
+                    if output:
+                        output.write(chunk)
+                click.echo()  # Newline after streaming
+                logger.info("streaming generation finished chunks=%d", _chunk_count)
+            else:
+                logger.debug("calling provider.generate with params=%s", params)
+                result = provider_instance.generate(prompt_text, **params)
+                
+                # Handle output format
+                output_text = format_text_output(
+                    result,
+                    json_output,
+                    array_output,
+                    provider=provider,
+                    model=model or provider_instance.get_default_model() if hasattr(provider_instance, 'get_default_model') else None
+                )
+                
+                click.echo(output_text)
+                if output:
+                    output.write(output_text)
+                logger.info("generation finished result_length=%d", len(result or ''))
     except Exception as e:
         error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
         logger.exception("generation failed")
@@ -190,7 +279,9 @@ def generate(prompt: Optional[str], provider: str, model: Optional[str],
 @click.option('--model', '-m', help='Model to use')
 @click.option('--system', '-s', help='System message')
 @click.option('--thread', '-t', help='Thread name (maintains conversation history). If not specified, uses active thread if available.')
-def chat(prompt: str, provider: str, model: Optional[str], system: Optional[str], thread: Optional[str]):
+@click.option('--json', 'json_output', is_flag=True, help='Output as JSON')
+@click.option('--array', 'array_output', is_flag=True, help='Output as array')
+def chat(prompt: str, provider: str, model: Optional[str], system: Optional[str], thread: Optional[str], json_output: bool, array_output: bool):
     """Chat with AI (conversational context). Use --thread to maintain conversation history."""
     config = Config()
     
@@ -236,7 +327,16 @@ def chat(prompt: str, provider: str, model: Optional[str], system: Optional[str]
             params['model'] = model
         
         result = provider_instance.chat(messages, **params)
-        click.echo(result)
+        
+        # Format output
+        output_text = format_text_output(
+            result,
+            json_output,
+            array_output,
+            provider=provider,
+            model=model or provider_instance.get_default_model() if hasattr(provider_instance, 'get_default_model') else None
+        )
+        click.echo(output_text)
         
         # Save to thread if specified or active thread exists
         if thread:
@@ -1786,7 +1886,9 @@ def agent_thread_delete(agent_name: str, thread_name: str):
 @click.option('--agent', 'agent_name', help='Agent name (defaults to active agent)')
 @click.option('--thread', 'thread_name', help='Thread name (defaults to active thread)')
 @click.option('--image', 'images', multiple=True, type=click.Path(exists=True), help='Local image file(s) to include')
-def agent_run(prompt: Optional[str], agent_name: Optional[str], thread_name: Optional[str], images: tuple):
+@click.option('--json', 'json_output', is_flag=True, help='Output as JSON')
+@click.option('--array', 'array_output', is_flag=True, help='Output as array')
+def agent_run(prompt: Optional[str], agent_name: Optional[str], thread_name: Optional[str], images: tuple, json_output: bool, array_output: bool):
     """Run an agent with a prompt (reads stdin if omitted). Uses active thread if available."""
     config = Config()
     if not prompt:
@@ -1820,7 +1922,16 @@ def agent_run(prompt: Optional[str], agent_name: Optional[str], thread_name: Opt
             actions_config=spec.get('actions') or {},
         )
         result = ag.run(input_text=prompt, images=list(images) if images else None, thread_name=thread_name)
-        click.echo(result)
+        
+        # Format output
+        output_text = format_text_output(
+            result,
+            json_output,
+            array_output,
+            provider=spec.get('provider'),
+            model=spec.get('model')
+        )
+        click.echo(output_text)
     except Exception as e:
         error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
         click.echo(f"Error: {error_msg}", err=True)
@@ -2116,7 +2227,9 @@ def team_set_coordinator(team_name: str, agent_name: str):
 @click.argument('task', required=False)
 @click.option('--team', 'team_name', help='Team name (defaults to active team)')
 @click.option('--thread', '-t', help='Thread name (defaults to shared thread)')
-def team_run(task: Optional[str], team_name: Optional[str], thread: Optional[str]):
+@click.option('--json', 'json_output', is_flag=True, help='Output as JSON')
+@click.option('--array', 'array_output', is_flag=True, help='Output as array')
+def team_run(task: Optional[str], team_name: Optional[str], thread: Optional[str], json_output: bool, array_output: bool):
     """Run a task with a hierarchical team. The orchestrator agent will orchestrate the collaboration."""
     config = Config()
     from ffmcp.agents import Team as TeamClass
@@ -2156,7 +2269,16 @@ def team_run(task: Optional[str], team_name: Optional[str], thread: Optional[str
         )
         
         if result.get('success'):
-            click.echo(result.get('result', ''))
+            result_text = result.get('result', '')
+            # Format output
+            output_text = format_text_output(
+                result_text,
+                json_output,
+                array_output,
+                provider=team_data.get('orchestrator'),  # Use orchestrator name as provider context
+                model=None  # Teams don't have a single model
+            )
+            click.echo(output_text)
         else:
             click.echo(f"Error: {result.get('error', 'Unknown error')}", err=True)
             sys.exit(1)

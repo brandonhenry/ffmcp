@@ -74,11 +74,20 @@ ffmcp generate "Explain quantum computing" -p openai -m gpt-4o-mini
 # Stream the response (see it as it generates)
 ffmcp generate "Tell me a story" -s
 
+# With system message (sets the AI's role)
+ffmcp generate "Solve this math problem" --system "You are a helpful math tutor"
+
 # Control creativity (temperature: 0.0-2.0)
 ffmcp generate "Creative story" -t 0.9
 
 # Limit response length
 ffmcp generate "Summarize this" --max-tokens 100
+
+# Output as JSON
+ffmcp generate "Write a haiku" --json
+
+# Output as array
+ffmcp generate "Write a haiku" --array
 ```
 
 ### Read from File / Write to File
@@ -114,6 +123,12 @@ ffmcp chat "Solve this math problem" -s "You are a helpful math tutor" -p openai
 # Chat with thread (maintains conversation history)
 ffmcp chat "Hello, my name is Alice" -t conversation1
 ffmcp chat "What's my name?" -t conversation1  # Remembers!
+
+# Output as JSON
+ffmcp chat "Write a haiku" --json
+
+# Output as array
+ffmcp chat "Write a haiku" --array
 
 # Thread management for chat
 ffmcp thread create conversation1
@@ -165,6 +180,12 @@ ffmcp agent run "Find and summarize today's top AI news"
 
 # Run with specific thread
 ffmcp agent run "Continue the conversation" --thread conversation1
+
+# Output as JSON
+ffmcp agent run "Write a summary" --json
+
+# Output as array
+ffmcp agent run "Write a summary" --array
 ```
 
 ## Multi-Agent Teams (Hierarchical)
@@ -228,6 +249,12 @@ ffmcp team run "Create a summary of recent AI breakthroughs"
 # Use a shared thread for team collaboration
 ffmcp team create project-team -o orchestrator -m researcher -m writer -t project-thread
 ffmcp team run "Continue the project" --team project-team  # Uses shared thread automatically
+
+# Output as JSON
+ffmcp team run "Create a report" --team main-team --json
+
+# Output as array
+ffmcp team run "Create a report" --team main-team --array
 ```
 
 ### Managing Teams
@@ -729,6 +756,7 @@ ffmcp generate "$PROMPT" -p openai -s
 -o output.txt    # Write to file
 -s               # Stream (real-time)
 --json           # JSON output (for some commands)
+--array          # Array output (for generate command)
 ```
 
 ### Generation Parameters

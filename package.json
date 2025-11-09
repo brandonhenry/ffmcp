@@ -1,6 +1,6 @@
 {
   "name": "ffmcp",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "AI command-line tool inspired by ffmpeg. Access any AI service from the command line with a unified interface.",
   "main": "index.js",
   "types": "index.d.ts",

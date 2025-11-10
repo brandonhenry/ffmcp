@@ -2,6 +2,10 @@
   publish = "docs"
   command = "echo 'No build step needed'"
 
+# Skip Python dependency installation for static site deployment
+[build.environment]
+  SKIP_PYTHON_INSTALL = "true"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

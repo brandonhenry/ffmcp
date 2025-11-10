@@ -1,0 +1,19 @@
+# Ignore Python files and dependencies for static site deployment
+requirements.txt
+setup.py
+*.py
+*.pyc
+__pycache__/
+venv/
+*.egg-info/
+ffmcp/
+examples/
+guides/
+scripts/
+bin/
+node_modules/
+*.md
+!docs/*.md
+.git/
+.gitignore
+

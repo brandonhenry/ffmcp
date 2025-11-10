@@ -198,6 +198,205 @@
         .tip-box strong {
             color: #d97706;
         }
+        /* Input field styling */
+        input[type="text"],
+        input[type="number"],
+        input[type="email"],
+        input[type="password"],
+        input[type="search"],
+        input[type="tel"],
+        input[type="url"],
+        input[type="time"],
+        input[type="date"],
+        input[type="datetime-local"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1rem;
+            font-family: inherit;
+            color: #333;
+            background-color: #fff;
+            border: 2px solid #e0e0e0;
+            border-radius: 4px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus,
+        input[type="search"]:focus,
+        input[type="tel"]:focus,
+        input[type="url"]:focus,
+        input[type="time"]:focus,
+        input[type="date"]:focus,
+        input[type="datetime-local"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #2a5298;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+        }
+        input[type="text"]:hover,
+        input[type="number"]:hover,
+        input[type="email"]:hover,
+        input[type="password"]:hover,
+        input[type="search"]:hover,
+        input[type="tel"]:hover,
+        input[type="url"]:hover,
+        input[type="time"]:hover,
+        input[type="date"]:hover,
+        input[type="datetime-local"]:hover,
+        textarea:hover,
+        select:hover {
+            border-color: #b0b0b0;
+        }
+        input[type="text"]::placeholder,
+        input[type="number"]::placeholder,
+        input[type="email"]::placeholder,
+        input[type="password"]::placeholder,
+        input[type="search"]::placeholder,
+        input[type="tel"]::placeholder,
+        input[type="url"]::placeholder,
+        textarea::placeholder {
+            color: #999;
+            opacity: 1;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        /* Specific styling for duration/total duration inputs */
+        input[type="number"][name*="duration"],
+        input[type="number"][name*="total"],
+        input[type="text"][name*="duration"],
+        input[type="text"][name*="total"],
+        input.total-duration,
+        input.duration-input {
+            background-color: #fff;
+            border: 2px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 0.75rem;
+            font-size: 1rem;
+            color: #333;
+        }
+        input[type="number"][name*="duration"]:focus,
+        input[type="number"][name*="total"]:focus,
+        input[type="text"][name*="duration"]:focus,
+        input[type="text"][name*="total"]:focus,
+        input.total-duration:focus,
+        input.duration-input:focus {
+            outline: none;
+            border-color: #2a5298;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+            background-color: #fff;
+        }
+        /* Timeline and faux-select-offer styling - prevent UI blocking */
+        [data-secondsdelay] {
+            pointer-events: auto;
+            will-change: opacity, transform;
+        }
+        .faux-select-offer {
+            position: relative;
+            margin: 1rem 0;
+            z-index: 1;
+            pointer-events: auto;
+            background-color: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 0.75rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .faux-select-offer-selected {
+            cursor: pointer;
+            padding: 0.75rem;
+            background-color: #f9f9f9;
+            border: 2px solid #e0e0e0;
+            border-radius: 4px;
+            font-weight: 500;
+            color: #333;
+            transition: border-color 0.3s ease, background-color 0.3s ease;
+            pointer-events: auto;
+            user-select: none;
+        }
+        .faux-select-offer-selected:hover {
+            border-color: #2a5298;
+            background-color: #f0f4ff;
+        }
+        .faux-select-offer-options {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 0.25rem;
+            background-color: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            max-height: 300px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            pointer-events: auto;
+            display: none;
+        }
+        .faux-select-offer:hover .faux-select-offer-options,
+        .faux-select-offer.focused .faux-select-offer-options {
+            display: block;
+        }
+        .faux-select-offer-option {
+            padding: 0.75rem;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.2s ease;
+            pointer-events: auto;
+        }
+        .faux-select-offer-option:last-child {
+            border-bottom: none;
+        }
+        .faux-select-offer-option:hover {
+            background-color: #f0f4ff;
+        }
+        .faux-select-offer-option input[type="checkbox"] {
+            margin-right: 0.5rem;
+            cursor: pointer;
+            pointer-events: auto;
+            width: auto;
+            padding: 0;
+        }
+        /* Ensure timeline elements don't block interactions */
+        [data-secondsdelay]:not(.faux-select-offer):not(.faux-select-offer-selected):not(.faux-select-offer-option) {
+            opacity: 1;
+            visibility: visible;
+        }
+        /* Prevent z-index stacking issues */
+        .faux-select-offer,
+        .faux-select-offer-options {
+            isolation: isolate;
+        }
+        /* Ensure no overflow blocking */
+        .faux-select-offer {
+            overflow: visible;
+        }
+        .faux-select-offer-options {
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        /* Fix for mobile/touch devices */
+        @media (max-width: 768px) {
+            .faux-select-offer-options {
+                position: fixed;
+                left: 1rem;
+                right: 1rem;
+                max-width: calc(100vw - 2rem);
+                max-height: 50vh;
+                z-index: 10000;
+            }
+            .faux-select-offer-selected {
+                touch-action: manipulation;
+            }
+        }
     </style>
 </head>
 <body>

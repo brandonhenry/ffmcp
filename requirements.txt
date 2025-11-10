@@ -11,5 +11,7 @@ cohere>=4.0.0
 httpx>=0.24.0
 elevenlabs>=1.0.0
 fish-audio-sdk>=1.0.0
-leann>=0.3.0
+# LEANN is optional - install separately if needed: pip install leann
+# Note: LEANN requires leann-backend-hnsw which may need system dependencies
+# leann>=0.3.0
 

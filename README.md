@@ -36,7 +36,9 @@ pip install ffmcp
 # Or install with specific providers
 pip install ffmcp[openai]
 pip install ffmcp[anthropic]
-pip install ffmcp[all]
+pip install ffmcp[zep]      # Zep memory support
+pip install ffmcp[leann]    # LEANN memory support (optional, requires system dependencies)
+pip install ffmcp[all]      # All providers (does not include LEANN - install separately if needed)
 ```
 
 **Note:** On macOS with Homebrew Python, you may encounter an "externally-managed-environment" error. Use a virtual environment:
@@ -819,6 +821,13 @@ ffmcp config -p zep -k YOUR_ZEP_API_KEY
 #### LEANN Setup (Local, No API Key Required)
 
 ```bash
+# First, install LEANN separately (requires system dependencies)
+# LEANN is optional and not included in default installation
+pip install leann
+
+# Or install ffmcp with LEANN support
+pip install ffmcp[leann]
+
 # LEANN works out of the box - no API key needed!
 # Optional: Configure index directory (defaults to ~/.ffmcp/leann_indexes)
 export LEANN_INDEX_DIR=/path/to/indexes
@@ -826,6 +835,8 @@ export LEANN_INDEX_DIR=/path/to/indexes
 # Or persist settings
 ffmcp config set-leann-index-dir /path/to/indexes
 ```
+
+**Note:** LEANN requires `leann-backend-hnsw` which may need system dependencies. If installation fails, you can still use Zep backend without LEANN.
 
 ### Brains
 

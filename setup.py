@@ -36,7 +36,21 @@ setup(
     extras_require={
         "openai": ["openai>=1.0.0"],
         "anthropic": ["anthropic>=0.18.0"],
-        "all": ["openai>=1.0.0", "anthropic>=0.18.0"],
+        "zep": ["zep-cloud>=0.3.0", "zep-python>=0.40.0"],
+        "leann": ["leann>=0.3.0"],
+        "all": [
+            "openai>=1.0.0",
+            "anthropic>=0.18.0",
+            "zep-cloud>=0.3.0",
+            "zep-python>=0.40.0",
+            "google-generativeai>=0.3.0",
+            "groq>=0.4.0",
+            "mistralai>=1.0.0",
+            "together>=1.0.0",
+            "cohere>=4.0.0",
+            "elevenlabs>=1.0.0",
+            "fish-audio-sdk>=1.0.0",
+        ],
     },
     entry_points={
         "console_scripts": [

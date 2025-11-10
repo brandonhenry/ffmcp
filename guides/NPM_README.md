@@ -106,7 +106,7 @@ const result = await ffmcp.generate('Hello', {
 - 🔧 **Configurable**: Manage API keys and settings easily
 - 📊 **Streaming**: Real-time streaming support for responses
 - 🎨 **Full OpenAI Support**: All OpenAI features including vision, images, audio, embeddings, and assistants
-- 🧠 **Memory with Zep (Brains)**: Create brains, store/retrieve chat memory, collections, and graph
+- 🧠 **Memory with Zep/LEANN (Brains)**: Create brains with Zep (cloud/self-hosted) or LEANN (local, 97% storage savings), store/retrieve chat memory, collections, and graph
 - 🤖 **Agents**: Named agents with model, instructions, brain, dynamic properties, and actions
 - 👥 **Multi-Agent Teams**: Agents can work together in teams
 - 💬 **Threads**: Conversation history for both chat and agents

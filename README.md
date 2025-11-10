@@ -17,7 +17,7 @@
 - 🔧 **Configurable**: Manage API keys and settings easily
 - 📊 **Streaming**: Real-time streaming support for responses
 - 🎨 **Full OpenAI Support**: All OpenAI features including vision, images, audio, embeddings, and assistants
-- 🧠 **Memory with Zep (Brains)**: Create brains, store/retrieve chat memory, collections, and graph
+- 🧠 **Memory with Zep/LEANN (Brains)**: Create brains with Zep (cloud/self-hosted) or LEANN (local, 97% storage savings), store/retrieve chat memory, collections, and graph
 - 🤖 **Agents**: Named agents with model, instructions, brain, dynamic properties, and actions (web, images, vision, embeddings)
 - 👥 **Multi-Agent Teams**: Agents can work together in teams, delegate tasks, and collaborate to accomplish complex goals
 - 💬 **Threads**: Conversation history for both chat and agents - maintain context across multiple interactions
@@ -793,11 +793,17 @@ ffmcp agent thread use assistant project-b
 ffmcp agent run "Research Python frameworks" --agent assistant  # Fresh conversation
 ```
 
-## Zep Memory (Brains)
+## Zep/LEANN Memory (Brains)
 
-**Note:** Brains (Zep) are separate from threads. Threads maintain conversation history locally, while Brains provide advanced memory features including semantic search, document storage, and graph relationships. You can use both together - agents can have threads for conversation history AND a brain for long-term memory and document search.
+**Note:** Brains are separate from threads. Threads maintain conversation history locally, while Brains provide advanced memory features including semantic search, document storage, and graph relationships. You can use both together - agents can have threads for conversation history AND a brain for long-term memory and document search.
+
+**Backend Options:**
+- **Zep**: Cloud or self-hosted memory platform (requires API key for cloud)
+- **LEANN**: Local vector index with 97% storage savings, runs entirely on your server (no API key needed)
 
 ### Setup
+
+#### Zep Setup (Cloud or Self-Hosted)
 
 ```bash
 # Configure Zep (Cloud)
@@ -810,17 +816,42 @@ export ZEP_BASE_URL=http://localhost:8000
 ffmcp config -p zep -k YOUR_ZEP_API_KEY
 ```
 
+#### LEANN Setup (Local, No API Key Required)
+
+```bash
+# LEANN works out of the box - no API key needed!
+# Optional: Configure index directory (defaults to ~/.ffmcp/leann_indexes)
+export LEANN_INDEX_DIR=/path/to/indexes
+
+# Or persist settings
+ffmcp config set-leann-index-dir /path/to/indexes
+```
+
 ### Brains
 
 ```bash
-# Create and use a brain
-ffmcp brain create mybrain
-ffmcp brain current
+# Create a Zep brain (default)
+ffmcp brain create my-zep-brain --backend zep
+
+# Create a LEANN brain (local, no API key needed)
+ffmcp brain create my-leann-brain --backend leann
+
+# Create with default session ID
+ffmcp brain create mybrain --session-id session-123
+
+# List all brains (shows backend type)
 ffmcp brain list
+# Output: my-zep-brain (zep) *
+#         my-leann-brain (leann)
+
+# Use a brain
 ffmcp brain use mybrain
+ffmcp brain current
 ```
 
 ### Memory
+
+Memory operations work identically for both Zep and LEANN backends:
 
 ```bash
 # Add a message to memory
@@ -841,9 +872,12 @@ ffmcp brain memory clear
 
 Notes:
 - Omitting `--brain` uses the active brain (set with `ffmcp brain use`).
-- Omitting `--session` defaults to the brain’s `default_session_id` (if set) or the brain name.
+- Omitting `--session` defaults to the brain's `default_session_id` (if set) or the brain name.
+- Both Zep and LEANN support the same memory operations.
 
 ### Collections & Documents
+
+Collection and document operations work identically for both backends:
 
 ```bash
 # Create a namespaced collection under the brain
@@ -856,7 +890,9 @@ ffmcp brain document add knowledge --text "Zep is a memory platform for LLM apps
 ffmcp brain document search knowledge "memory platform"
 ```
 
-### Graph (Zep Cloud)
+### Graph (Zep Cloud Only)
+
+Graph operations are only available with Zep Cloud backend:
 
 ```bash
 # Add JSON data to user graph
@@ -866,6 +902,48 @@ echo '{"projects": {"alpha": {"status": "in progress"}}}' | \
 # Get user graph
 ffmcp brain graph get user-123
 ```
+
+**Note:** Graph API is not available in LEANN backend. Use Zep Cloud backend for graph operations.
+
+### LEANN-Specific Operations
+
+LEANN provides additional direct index management commands:
+
+```bash
+# Build a LEANN index directly from files/directories
+ffmcp brain leann build my-index ./documents/ --backend hnsw
+
+# List all LEANN indexes
+ffmcp brain leann list
+
+# Search a LEANN index directly
+ffmcp brain leann search my-index "query text" --top-k 10
+
+# Remove a LEANN index
+ffmcp brain leann remove my-index --force
+```
+
+### Choosing Between Zep and LEANN
+
+**Use Zep when:**
+- You need graph relationships
+- You want cloud-hosted memory
+- You need real-time collaboration features
+- You have a Zep Cloud API key
+
+**Use LEANN when:**
+- You want 100% local/private storage (no API key needed)
+- You need maximum storage efficiency (97% savings)
+- You're running on your own server
+- You want to avoid external dependencies
+- You don't need graph features
+
+**Both backends support:**
+- Memory operations (add, get, search, clear)
+- Collections and documents
+- Semantic search
+- Metadata filtering
+- Session management
 
 ## Usage Examples
 

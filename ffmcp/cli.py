@@ -14,7 +14,11 @@ from typing import Any, Dict, List, Optional
 
 from ffmcp.providers import get_provider
 from ffmcp.config import Config
-from ffmcp.brain import ZepBrainClient, BrainInfo, ZepSDKNotInstalledError
+from ffmcp.brain import (
+    ZepBrainClient, LEANNBrainClient, BrainInfo,
+    ZepSDKNotInstalledError, LEANNSDKNotInstalledError,
+    create_brain_client,
+)
 from ffmcp.agents import Agent
 from ffmcp.voiceover import get_tts_provider
 
@@ -545,44 +549,65 @@ def vision(prompt: str, images: tuple, model: str, temperature: Optional[float],
 
 @cli.group()
 def brain():
-    """Manage brains (Zep memory, collections, graph)."""
+    """Manage brains (Zep/LEANN memory, collections, graph)."""
     pass
 
 
 def _load_brain_and_client(config: Config, brain_name: str = None) -> tuple:
-    zep_settings = config.get_zep_settings()
-    try:
-        client = ZepBrainClient(
-            api_key=zep_settings.get('api_key'),
-            base_url=zep_settings.get('base_url'),
-            env=zep_settings.get('env'),
-        )
-    except ZepSDKNotInstalledError as e:
-        click.echo(str(e), err=True)
-        sys.exit(1)
-
+    """Load brain configuration and create appropriate client."""
     if not brain_name:
         brain_name = config.get_active_brain()
         if not brain_name:
             click.echo("Error: No brain specified and no active brain set. Use 'ffmcp brain create <name>' or 'ffmcp brain use <name>'.", err=True)
             sys.exit(1)
+    
     brain_cfg = config.get_brain(brain_name)
     if not brain_cfg:
         click.echo(f"Error: Unknown brain '{brain_name}'. Create it with 'ffmcp brain create {brain_name}'.", err=True)
         sys.exit(1)
-    brain_info = BrainInfo(name=brain_name, default_session_id=brain_cfg.get('default_session_id'))
+    
+    backend = brain_cfg.get('backend', 'zep')
+    brain_info = BrainInfo(
+        name=brain_name,
+        default_session_id=brain_cfg.get('default_session_id'),
+        backend=backend,
+    )
+    
+    # Create appropriate client based on backend
+    try:
+        if backend == 'leann':
+            leann_settings = config.get_leann_settings()
+            client = create_brain_client(
+                backend='leann',
+                brain=brain_info,
+                leann_index_dir=leann_settings.get('index_dir'),
+            )
+        else:
+            zep_settings = config.get_zep_settings()
+            client = create_brain_client(
+                backend='zep',
+                brain=brain_info,
+                zep_api_key=zep_settings.get('api_key'),
+                zep_base_url=zep_settings.get('base_url'),
+                zep_env=zep_settings.get('env'),
+            )
+    except (ZepSDKNotInstalledError, LEANNSDKNotInstalledError) as e:
+        click.echo(str(e), err=True)
+        sys.exit(1)
+    
     return client, brain_info
 
 
 @brain.command('create')
 @click.argument('name')
 @click.option('--session-id', help='Default session id for this brain (optional)')
-def brain_create(name: str, session_id: str):
+@click.option('--backend', type=click.Choice(['zep', 'leann']), default='zep', help='Backend to use: zep or leann (default: zep)')
+def brain_create(name: str, session_id: str, backend: str):
     """Create a new brain and set it active."""
     config = Config()
     try:
-        config.create_brain(name, default_session_id=session_id)
-        click.echo(f"Brain created: {name}")
+        config.create_brain(name, default_session_id=session_id, backend=backend)
+        click.echo(f"Brain created: {name} (backend: {backend})")
     except Exception as e:
         error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
         click.echo(f"Error: {error_msg}", err=True)
@@ -597,7 +622,8 @@ def brain_list():
     active = config.get_active_brain()
     for b in brains:
         marker = ' *' if b.get('name') == active else ''
-        click.echo(f"{b.get('name')}{marker}")
+        backend = b.get('backend', 'zep')
+        click.echo(f"{b.get('name')} ({backend}){marker}")
 
 
 @brain.command('use')
@@ -818,8 +844,16 @@ def graph():
 @click.option('--data', 'data_str', help='Inline JSON string')
 @click.option('--input', 'input_file', type=click.File('r', encoding='utf-8'), help='JSON file input')
 def graph_add(user_id: str, data_type: str, data_str: Optional[str], input_file):
-    """Add graph data (cloud only)."""
+    """Add graph data (Zep Cloud only, not supported by LEANN)."""
     config = Config()
+    brain_name = config.get_active_brain()
+    if brain_name:
+        brain_cfg = config.get_brain(brain_name)
+        backend = brain_cfg.get('backend', 'zep')
+        if backend == 'leann':
+            click.echo("Error: Graph API is not available in LEANN backend. Use Zep backend for graph operations.", err=True)
+            sys.exit(1)
+    
     zep_settings = config.get_zep_settings()
     try:
         client = ZepBrainClient(api_key=zep_settings.get('api_key'), base_url=zep_settings.get('base_url'), env=zep_settings.get('env'))
@@ -842,8 +876,16 @@ def graph_add(user_id: str, data_type: str, data_str: Optional[str], input_file)
 @graph.command('get')
 @click.argument('user_id')
 def graph_get(user_id: str):
-    """Get graph data (cloud only)."""
+    """Get graph data (Zep Cloud only, not supported by LEANN)."""
     config = Config()
+    brain_name = config.get_active_brain()
+    if brain_name:
+        brain_cfg = config.get_brain(brain_name)
+        backend = brain_cfg.get('backend', 'zep')
+        if backend == 'leann':
+            click.echo("Error: Graph API is not available in LEANN backend. Use Zep backend for graph operations.", err=True)
+            sys.exit(1)
+    
     zep_settings = config.get_zep_settings()
     try:
         client = ZepBrainClient(api_key=zep_settings.get('api_key'), base_url=zep_settings.get('base_url'), env=zep_settings.get('env'))
@@ -855,6 +897,187 @@ def graph_get(user_id: str):
         click.echo(f"Error: {res.get('error')}", err=True)
         sys.exit(1)
     click.echo(json.dumps(res.get('result'), indent=2, default=str))
+
+
+# ========== LEANN-specific commands ==========
+
+@brain.group()
+def leann():
+    """LEANN-specific operations (index management, direct building)."""
+    pass
+
+
+@leann.command('build')
+@click.argument('index_name')
+@click.argument('docs', nargs=-1, required=True)
+@click.option('--backend', type=click.Choice(['hnsw', 'diskann']), default='hnsw', help='Backend to use (default: hnsw)')
+@click.option('--embedding-model', default='facebook/contriever', help='Embedding model (default: facebook/contriever)')
+@click.option('--graph-degree', type=int, default=32, help='Graph degree (default: 32)')
+@click.option('--complexity', type=int, default=64, help='Build complexity (default: 64)')
+@click.option('--force', is_flag=True, help='Force rebuild existing index')
+@click.option('--compact/--no-compact', default=True, help='Use compact storage (default: true)')
+@click.option('--recompute/--no-recompute', default=True, help='Enable recomputation (default: true)')
+def leann_build(index_name: str, docs: tuple, backend: str, embedding_model: str, graph_degree: int, complexity: int, force: bool, compact: bool, recompute: bool):
+    """Build a LEANN index from documents/files."""
+    try:
+        from leann import LeannBuilder  # type: ignore
+        from pathlib import Path
+    except ImportError:
+        click.echo("Error: LEANN SDK not installed. Install with: pip install leann", err=True)
+        sys.exit(1)
+    
+    config = Config()
+    leann_settings = config.get_leann_settings()
+    index_dir = Path(leann_settings.get('index_dir') or Path.home() / '.ffmcp' / 'leann_indexes')
+    index_dir.mkdir(parents=True, exist_ok=True)
+    
+    index_path = index_dir / f"{index_name}.leann"
+    if index_path.exists() and not force:
+        click.echo(f"Error: Index '{index_name}' already exists. Use --force to rebuild.", err=True)
+        sys.exit(1)
+    
+    try:
+        builder = LeannBuilder(backend_name=backend)
+        
+        # Process documents
+        for doc_path in docs:
+            doc_path_obj = Path(doc_path)
+            if not doc_path_obj.exists():
+                click.echo(f"Warning: File not found: {doc_path}", err=True)
+                continue
+            
+            if doc_path_obj.is_file():
+                # Read file content
+                try:
+                    with open(doc_path_obj, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                    builder.add_text(content, metadata={"source": str(doc_path)})
+                except Exception as e:
+                    click.echo(f"Warning: Could not read file {doc_path}: {e}", err=True)
+            elif doc_path_obj.is_dir():
+                # Process directory
+                for file_path in doc_path_obj.rglob('*'):
+                    if file_path.is_file():
+                        try:
+                            with open(file_path, 'r', encoding='utf-8') as f:
+                                content = f.read()
+                            builder.add_text(content, metadata={"source": str(file_path)})
+                        except Exception:
+                            pass
+        
+        # Build index
+        builder.build_index(str(index_path))
+        click.echo(f"Index built: {index_path}")
+    except Exception as e:
+        click.echo(f"Error building index: {e}", err=True)
+        sys.exit(1)
+
+
+@leann.command('list')
+def leann_list():
+    """List all LEANN indexes."""
+    try:
+        from pathlib import Path
+    except ImportError:
+        pass
+    
+    config = Config()
+    leann_settings = config.get_leann_settings()
+    index_dir = Path(leann_settings.get('index_dir') or Path.home() / '.ffmcp' / 'leann_indexes')
+    
+    if not index_dir.exists():
+        click.echo("No indexes found.")
+        return
+    
+    indexes = list(index_dir.glob("*.leann"))
+    if not indexes:
+        click.echo("No indexes found.")
+        return
+    
+    click.echo("LEANN Indexes:")
+    for idx_path in sorted(indexes):
+        size = idx_path.stat().st_size if idx_path.exists() else 0
+        size_mb = size / (1024 * 1024)
+        click.echo(f"  {idx_path.stem} ({size_mb:.2f} MB)")
+
+
+@leann.command('remove')
+@click.argument('index_name')
+@click.option('--force', '-f', is_flag=True, help='Force removal without confirmation')
+def leann_remove(index_name: str, force: bool):
+    """Remove a LEANN index."""
+    from pathlib import Path
+    
+    config = Config()
+    leann_settings = config.get_leann_settings()
+    index_dir = Path(leann_settings.get('index_dir') or Path.home() / '.ffmcp' / 'leann_indexes')
+    
+    index_path = index_dir / f"{index_name}.leann"
+    if not index_path.exists():
+        click.echo(f"Error: Index '{index_name}' not found.", err=True)
+        sys.exit(1)
+    
+    if not force:
+        click.confirm(f"Remove index '{index_name}'?", abort=True)
+    
+    try:
+        index_path.unlink()
+        # Also remove metadata file if exists
+        meta_path = index_path.with_suffix('.leann.meta.json')
+        if meta_path.exists():
+            meta_path.unlink()
+        click.echo(f"Index removed: {index_name}")
+    except Exception as e:
+        click.echo(f"Error removing index: {e}", err=True)
+        sys.exit(1)
+
+
+@leann.command('search')
+@click.argument('index_name')
+@click.argument('query')
+@click.option('--top-k', type=int, default=5, help='Number of results (default: 5)')
+@click.option('--complexity', type=int, default=64, help='Search complexity (default: 64)')
+def leann_search(index_name: str, query: str, top_k: int, complexity: int):
+    """Search a LEANN index."""
+    try:
+        from leann import LeannSearcher  # type: ignore
+        from pathlib import Path
+    except ImportError:
+        click.echo("Error: LEANN SDK not installed. Install with: pip install leann", err=True)
+        sys.exit(1)
+    
+    config = Config()
+    leann_settings = config.get_leann_settings()
+    index_dir = Path(leann_settings.get('index_dir') or Path.home() / '.ffmcp' / 'leann_indexes')
+    index_path = index_dir / f"{index_name}.leann"
+    
+    if not index_path.exists():
+        click.echo(f"Error: Index '{index_name}' not found.", err=True)
+        sys.exit(1)
+    
+    try:
+        searcher = LeannSearcher(str(index_path))
+        results = searcher.search(query, top_k=top_k)
+        
+        formatted_results = []
+        for r in results:
+            result_dict = {
+                "text": r.text if hasattr(r, 'text') else str(r),
+            }
+            if hasattr(r, 'score') and r.score is not None:
+                result_dict["score"] = r.score
+            if hasattr(r, 'distance') and r.distance is not None:
+                result_dict["distance"] = r.distance
+            if hasattr(r, 'metadata') and r.metadata:
+                result_dict["metadata"] = r.metadata
+            formatted_results.append(result_dict)
+        
+        click.echo(json.dumps(formatted_results, indent=2, default=str))
+    except Exception as e:
+        click.echo(f"Error searching index: {e}", err=True)
+        sys.exit(1)
+
+
 @openai.command()
 @click.argument('prompt')
 @click.option('--model', '-m', default='dall-e-3', help='Model (dall-e-2 or dall-e-3)')

@@ -231,7 +231,7 @@
                     <li><a href="#teams">Hierarchical Teams</a></li>
                     <li><a href="#openai-features">OpenAI Features</a></li>
                     <li><a href="#tts-voiceover">TTS/Voiceover</a></li>
-                    <li><a href="#brains">Brains (Zep Memory)</a></li>
+                    <li><a href="#brains">Brains (Zep/LEANN Memory)</a></li>
                     <li><a href="#brains-collections">Brains: Collections & Documents</a></li>
                     <li><a href="#real-world-examples">Real-World Examples</a></li>
                     <li><a href="#options-reference">Options Reference</a></li>
@@ -1110,7 +1110,15 @@ done</code>
             </section>
 
             <section id="brains" class="command-section">
-                <h2>Brains (Zep Memory)</h2>
+                <h2>Brains (Zep/LEANN Memory)</h2>
+
+                <div class="tip-box">
+                    <strong>Backend Options:</strong>
+                    <ul>
+                        <li><strong>Zep</strong>: Cloud or self-hosted memory platform (requires API key for cloud)</li>
+                        <li><strong>LEANN</strong>: Local vector index with 97% storage savings, runs entirely on your server (no API key needed)</li>
+                    </ul>
+                </div>
 
                 <h3>Setup Zep</h3>
                 <div class="command-example">
@@ -1124,11 +1132,30 @@ done</code>
 <span class="prompt">$</span> ffmcp config -p zep -k YOUR_ZEP_API_KEY</code>
                 </div>
 
+                <h3>Setup LEANN</h3>
+                <div class="command-example">
+<code><span class="comment"># LEANN works out of the box - no API key needed!</span>
+<span class="comment"># Optional: Configure index directory (defaults to ~/.ffmcp/leann_indexes)</span>
+<span class="prompt">$</span> export LEANN_INDEX_DIR=/path/to/indexes</code>
+                </div>
+
                 <h3>Create and Use a Brain</h3>
                 <div class="command-example">
-<code><span class="prompt">$</span> ffmcp brain create mybrain
-<span class="prompt">$</span> ffmcp brain current
+<code><span class="comment"># Create a Zep brain (default)</span>
+<span class="prompt">$</span> ffmcp brain create my-zep-brain --backend zep
+
+<span class="comment"># Create a LEANN brain (local, no API key needed)</span>
+<span class="prompt">$</span> ffmcp brain create my-leann-brain --backend leann
+
+<span class="comment"># Create with default session ID</span>
+<span class="prompt">$</span> ffmcp brain create mybrain --session-id session-123
+
+<span class="comment"># List brains (shows backend type)</span>
 <span class="prompt">$</span> ffmcp brain list
+<span class="comment"># Output: my-zep-brain (zep) *</span>
+<span class="comment">#         my-leann-brain (leann)</span>
+
+<span class="prompt">$</span> ffmcp brain current
 <span class="prompt">$</span> ffmcp brain use mybrain</code>
                 </div>
 
@@ -1155,7 +1182,7 @@ done</code>
 <span class="comment"># Get memory for a specific session within a brain</span>
 <span class="prompt">$</span> ffmcp brain memory get --brain mybrain --session session-123</code>
                     </div>
-                    <p style="margin:0.5rem 0 0 0;">If <code>--brain</code> is omitted, the active brain is used. If <code>--session</code> is omitted, it defaults to the brain’s <code>default_session_id</code> (if set) or the brain name.</p>
+                    <p style="margin:0.5rem 0 0 0;">If <code>--brain</code> is omitted, the active brain is used. If <code>--session</code> is omitted, it defaults to the brain's <code>default_session_id</code> (if set) or the brain name. Both Zep and LEANN support the same memory operations.</p>
                 </div>
             </section>
 
@@ -1174,13 +1201,31 @@ done</code>
 <span class="prompt">$</span> ffmcp brain document delete knowledge --id doc1</code>
                 </div>
 
-                <h3>Graph (Zep Cloud)</h3>
+                <h3>Graph (Zep Cloud Only)</h3>
                 <div class="command-example">
 <code><span class="comment"># Add JSON to user graph</span>
 <span class="prompt">$</span> echo '{"projects":{"alpha":{"status":"in progress"}}}' | ffmcp brain graph add user-123 --type json --input -
 
 <span class="comment"># Get graph</span>
 <span class="prompt">$</span> ffmcp brain graph get user-123</code>
+                </div>
+                <div class="tip-box">
+                    <strong>Note:</strong> Graph API is not available in LEANN backend. Use Zep Cloud backend for graph operations.
+                </div>
+
+                <h3>LEANN-Specific Operations</h3>
+                <div class="command-example">
+<code><span class="comment"># Build a LEANN index directly from files/directories</span>
+<span class="prompt">$</span> ffmcp brain leann build my-index ./documents/ --backend hnsw
+
+<span class="comment"># List all LEANN indexes</span>
+<span class="prompt">$</span> ffmcp brain leann list
+
+<span class="comment"># Search a LEANN index directly</span>
+<span class="prompt">$</span> ffmcp brain leann search my-index "query text" --top-k 10
+
+<span class="comment"># Remove a LEANN index</span>
+<span class="prompt">$</span> ffmcp brain leann remove my-index --force</code>
                 </div>
             </section>
 

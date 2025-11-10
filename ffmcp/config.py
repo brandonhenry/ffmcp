@@ -189,21 +189,46 @@ class Config:
             self._config['zep']['env'] = env.strip()
         self._save_config()
 
+    # ---------------- LEANN settings ----------------
+    def get_leann_settings(self) -> dict:
+        """Return LEANN settings: { index_dir }.
+        
+        Values are resolved from env variables if not configured:
+        - LEANN_INDEX_DIR
+        """
+        leann_cfg = dict(self._config.get('leann', {}))
+        index_dir = leann_cfg.get('index_dir') or os.getenv('LEANN_INDEX_DIR')
+        return {'index_dir': index_dir}
+
+    def set_leann_settings(self, *, index_dir: str = None):
+        """Persist LEANN settings. Pass only the fields to update."""
+        if 'leann' not in self._config:
+            self._config['leann'] = {}
+        if index_dir is not None:
+            self._config['leann']['index_dir'] = index_dir.strip()
+        self._save_config()
+
     # ---------------- Brain registry ----------------
     def list_brains(self) -> list:
         brains = self._config.get('brains', {})
         return [{'name': n, **({} if not isinstance(v, dict) else v)} for n, v in brains.items()]
 
     def get_brain(self, name: str) -> dict:
-        return self._config.get('brains', {}).get(name) or {}
+        brain = self._config.get('brains', {}).get(name) or {}
+        # Ensure backward compatibility: default to 'zep' if backend not set
+        if 'backend' not in brain:
+            brain['backend'] = 'zep'
+        return brain
 
-    def create_brain(self, name: str, *, default_session_id: str = None) -> dict:
+    def create_brain(self, name: str, *, default_session_id: str = None, backend: str = "zep") -> dict:
         if not name or not name.strip():
             raise ValueError('brain name is required')
+        if backend not in ("zep", "leann"):
+            raise ValueError('backend must be "zep" or "leann"')
         brains = self._config.setdefault('brains', {})
         if name in brains:
             raise ValueError(f'brain already exists: {name}')
-        brains[name] = {'default_session_id': default_session_id}
+        brains[name] = {'default_session_id': default_session_id, 'backend': backend}
         self._config['active_brain'] = name
         self._save_config()
         return brains[name]

@@ -94,8 +94,9 @@ export GEMINI_API_KEY=your_key_here
 # ... etc
 ```
 
-### 3. (Optional) Configure Zep for Brains/Memory
+### 3. (Optional) Configure Zep/LEANN for Brains/Memory
 
+**Zep Setup (Cloud or Self-Hosted):**
 ```bash
 # Zep Cloud
 export ZEP_CLOUD_API_KEY=your_key
@@ -106,6 +107,15 @@ export ZEP_BASE_URL=http://localhost:8000
 # Or persist key
 ffmcp config -p zep -k YOUR_ZEP_API_KEY
 ```
+
+**LEANN Setup (Local, No API Key Required):**
+```bash
+# LEANN works out of the box - no API key needed!
+# Optional: Configure index directory (defaults to ~/.ffmcp/leann_indexes)
+export LEANN_INDEX_DIR=/path/to/indexes
+```
+
+**Note:** LEANN provides 97% storage savings and runs entirely locally. No external service or API key needed!
 
 ### 3. Test Basic Commands
 
@@ -177,12 +187,14 @@ ffmcp openai embed "Sample text"
 - `ffmcp team set-orchestrator` - Set team orchestrator
 - `ffmcp team run <task>` - Run a task with a team
 
-### Brain (Zep) Commands
-- `ffmcp brain create|list|use|current|delete`
-- `ffmcp brain memory add|get|search|clear`
-- `ffmcp brain collection create|list`
-- `ffmcp brain document add|search|delete`
-- `ffmcp brain graph add|get` (Zep Cloud)
+### Brain (Zep/LEANN) Commands
+- `ffmcp brain create|list|use|current|delete` - Manage brains
+- `ffmcp brain create <name> --backend zep|leann` - Create brain with backend
+- `ffmcp brain memory add|get|search|clear` - Memory operations
+- `ffmcp brain collection create|list` - Collection management
+- `ffmcp brain document add|search|delete` - Document operations
+- `ffmcp brain graph add|get` - Graph operations (Zep Cloud only)
+- `ffmcp brain leann build|list|search|remove` - LEANN-specific operations
 
 ## Example Workflow
 
@@ -207,8 +219,14 @@ ffmcp openai embed "Machine learning is fascinating" -o embeddings.json
 # 5. Transcribe audio (OpenAI only)
 ffmcp openai transcribe audio.mp3 -o transcript.txt
 
-# 6. Use Brain memory (Zep)
-ffmcp brain create mybrain
+# 6. Use Brain memory (Zep or LEANN)
+# Create a Zep brain
+ffmcp brain create my-zep-brain --backend zep
+
+# Create a LEANN brain (no API key needed)
+ffmcp brain create my-leann-brain --backend leann
+
+# Use memory operations (works with both backends)
 ffmcp brain memory add --role user --role-type user --content "Remember: favorite color is blue"
 ffmcp brain memory get
 ffmcp brain memory get --brain mybrain --session session-123

@@ -575,11 +575,17 @@ ffmcp openai assistant messages $(cat thread_id.txt)
 ffmcp openai assistant upload document.pdf
 ```
 
-## 🧠 Brains (Zep Memory)
+## 🧠 Zep/LEANN Memory (Brains)
 
 **Note:** Brains are separate from threads. Threads maintain conversation history locally, while Brains provide advanced memory features including semantic search, document storage, and graph relationships. You can use both together - agents can have threads for conversation history AND a brain for long-term memory and document search.
 
-### Setup Zep
+**Backend Options:**
+- **Zep**: Cloud or self-hosted memory platform (requires API key for cloud)
+- **LEANN**: Local vector index with 97% storage savings, runs entirely on your server (no API key needed)
+
+### Setup
+
+#### Zep Setup (Cloud or Self-Hosted)
 ```bash
 # Zep Cloud (recommended)
 export ZEP_CLOUD_API_KEY=your_key
@@ -591,22 +597,41 @@ export ZEP_BASE_URL=http://localhost:8000
 ffmcp config -p zep -k YOUR_ZEP_API_KEY
 ```
 
-### Create and Use a Brain
+#### LEANN Setup (Local, No API Key Required)
 ```bash
-# Create a brain and set it active
+# LEANN works out of the box - no API key needed!
+# Optional: Configure index directory (defaults to ~/.ffmcp/leann_indexes)
+export LEANN_INDEX_DIR=/path/to/indexes
+```
+
+### Create and Use a Brain
+
+```bash
+# Create a Zep brain (default)
+ffmcp brain create my-zep-brain --backend zep
+
+# Create a LEANN brain (local, no API key needed)
+ffmcp brain create my-leann-brain --backend leann
+
+# Create a brain and set it active (defaults to Zep)
 ffmcp brain create mybrain
 
 # Show active brain
 ffmcp brain current
 
-# List brains
+# List brains (shows backend type)
 ffmcp brain list
+# Output: my-zep-brain (zep) *
+#         my-leann-brain (leann)
 
 # Switch active brain
 ffmcp brain use mybrain
 ```
 
 ### Chat Memory
+
+Memory operations work identically for both Zep and LEANN backends:
+
 ```bash
 # Add a message to memory (session defaults to brain name)
 ffmcp brain memory add --role user --role-type user --content "Who was Octavia Butler?"
@@ -629,9 +654,13 @@ ffmcp brain memory clear
 
 Notes:
 - If you omit `--brain`, the active brain is used (`ffmcp brain use <name>`).
-- If you omit `--session`, it defaults to the brain’s `default_session_id` (if set) or the brain name.
+- If you omit `--session`, it defaults to the brain's `default_session_id` (if set) or the brain name.
+- Both Zep and LEANN support the same memory operations.
 
 ### Collections & Documents
+
+Collection and document operations work identically for both backends:
+
 ```bash
 # Create a collection (namespaced as mybrain::knowledge)
 ffmcp brain collection create knowledge --description "KB for mybrain"
@@ -643,7 +672,10 @@ ffmcp brain document add knowledge --text "Zep is a memory platform for LLM apps
 ffmcp brain document search knowledge "memory platform"
 ```
 
-### Graph (Zep Cloud only)
+### Graph (Zep Cloud Only)
+
+Graph operations are only available with Zep Cloud backend:
+
 ```bash
 # Add JSON data to a user's graph
 echo '{"projects":{"alpha":{"status":"in progress"}}}' | \
@@ -652,6 +684,48 @@ echo '{"projects":{"alpha":{"status":"in progress"}}}' | \
 # Get graph data
 ffmcp brain graph get user-123
 ```
+
+**Note:** Graph API is not available in LEANN backend. Use Zep Cloud backend for graph operations.
+
+### LEANN-Specific Operations
+
+LEANN provides additional direct index management commands:
+
+```bash
+# Build a LEANN index directly from files/directories
+ffmcp brain leann build my-index ./documents/ --backend hnsw
+
+# List all LEANN indexes
+ffmcp brain leann list
+
+# Search a LEANN index directly
+ffmcp brain leann search my-index "query text" --top-k 10
+
+# Remove a LEANN index
+ffmcp brain leann remove my-index --force
+```
+
+### Choosing Between Zep and LEANN
+
+**Use Zep when:**
+- You need graph relationships
+- You want cloud-hosted memory
+- You need real-time collaboration features
+- You have a Zep Cloud API key
+
+**Use LEANN when:**
+- You want 100% local/private storage (no API key needed)
+- You need maximum storage efficiency (97% savings)
+- You're running on your own server
+- You want to avoid external dependencies
+- You don't need graph features
+
+**Both backends support:**
+- Memory operations (add, get, search, clear)
+- Collections and documents
+- Semantic search
+- Metadata filtering
+- Session management
 
 ## Real-World Examples
 

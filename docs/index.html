@@ -7,8 +7,8 @@
     <!-- Primary Meta Tags -->
     <title>ffmcp - AI Command-Line Tool | Unified Interface for OpenAI, Anthropic, Gemini, and More</title>
     <meta name="title" content="ffmcp - AI Command-Line Tool | Unified Interface for OpenAI, Anthropic, Gemini, and More">
-    <meta name="description" content="ffmcp is a command-line tool inspired by ffmpeg that provides a unified interface for accessing AI services. Use OpenAI, Anthropic Claude, Google Gemini, Groq, DeepSeek, Mistral, Together AI, Cohere, Perplexity, and more from a single CLI. Features include text generation, vision, image generation, audio transcription, TTS, embeddings, agents, teams, and memory with Zep. Install via npm or pip.">
-    <meta name="keywords" content="ffmcp, AI command line tool, OpenAI CLI, Anthropic CLI, Claude CLI, Gemini CLI, AI terminal tool, ffmpeg for AI, unified AI interface, command line AI, CLI AI tool, OpenAI command line, Anthropic command line, Gemini command line, Groq CLI, DeepSeek CLI, Mistral CLI, Together AI CLI, Cohere CLI, Perplexity CLI, AI agents CLI, multi-agent teams, Zep memory, AI text generation, AI vision, DALL-E CLI, Whisper CLI, TTS CLI, AI embeddings CLI, AI assistants CLI">
+    <meta name="description" content="ffmcp is a command-line tool inspired by ffmpeg that provides a unified interface for accessing AI services. Use OpenAI, Anthropic Claude, Google Gemini, Groq, DeepSeek, Mistral, Together AI, Cohere, Perplexity, and more from a single CLI. Features include text generation, vision, image generation, audio transcription, TTS, embeddings, agents, teams, and memory with Zep or LEANN (local, 97% storage savings). Install via npm or pip.">
+    <meta name="keywords" content="ffmcp, AI command line tool, OpenAI CLI, Anthropic CLI, Claude CLI, Gemini CLI, AI terminal tool, ffmpeg for AI, unified AI interface, command line AI, CLI AI tool, OpenAI command line, Anthropic command line, Gemini command line, Groq CLI, DeepSeek CLI, Mistral CLI, Together AI CLI, Cohere CLI, Perplexity CLI, AI agents CLI, multi-agent teams, Zep memory, LEANN memory, local vector index, AI text generation, AI vision, DALL-E CLI, Whisper CLI, TTS CLI, AI embeddings CLI, AI assistants CLI">
     <meta name="author" content="ffmcp">
     <meta name="robots" content="index, follow">
     <meta name="language" content="English">
@@ -63,7 +63,7 @@
         "price": "0",
         "priceCurrency": "USD"
       },
-      "description": "ffmcp is a command-line tool inspired by ffmpeg that provides a unified interface for accessing AI services. Use OpenAI, Anthropic Claude, Google Gemini, Groq, DeepSeek, Mistral, Together AI, Cohere, Perplexity, and more from a single CLI. Features include text generation, vision, image generation, audio transcription, TTS, embeddings, agents, teams, and memory with Zep.",
+      "description": "ffmcp is a command-line tool inspired by ffmpeg that provides a unified interface for accessing AI services. Use OpenAI, Anthropic Claude, Google Gemini, Groq, DeepSeek, Mistral, Together AI, Cohere, Perplexity, and more from a single CLI. Features include text generation, vision, image generation, audio transcription, TTS, embeddings, agents, teams, and memory with Zep or LEANN (local, 97% storage savings).",
       "url": "https://ffmcp.org",
             "downloadUrl": "https://pypi.org/project/ffmcp/",
       "softwareVersion": "0.1.5",
@@ -87,7 +87,7 @@
         "Embeddings for semantic search",
         "AI agents with actions and tools",
         "Multi-agent hierarchical teams",
-        "Memory management with Zep",
+        "Memory management with Zep or LEANN (local, 97% storage savings)",
         "Function calling and tools",
         "Assistants API support"
       ],
@@ -132,7 +132,7 @@
           "name": "What features does ffmcp offer?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "ffmcp offers text generation, image analysis and generation (DALL-E), audio transcription and translation (Whisper), text-to-speech, embeddings, function calling, AI agents with actions, multi-agent hierarchical teams, memory management with Zep, and full OpenAI Assistants API support."
+            "text": "ffmcp offers text generation, image analysis and generation (DALL-E), audio transcription and translation (Whisper), text-to-speech, embeddings, function calling, AI agents with actions, multi-agent hierarchical teams, memory management with Zep (cloud/self-hosted) or LEANN (local, 97% storage savings), and full OpenAI Assistants API support."
           }
         },
         {
@@ -200,7 +200,7 @@
                     <li>📊 <strong>Streaming</strong> - Real-time streaming support for responses</li>
                     <li>🎨 <strong>Full OpenAI Support</strong> - Vision, images, audio, embeddings, and assistants</li>
                     <li>🎙️ <strong>TTS/Voiceover</strong> - Text-to-speech with ElevenLabs and FishAudio, voice cloning, voice configurations</li>
-                    <li>🧠 <strong>Brains (Zep Memory)</strong> - Create brains, chat memory, collections, graph</li>
+                    <li>🧠 <strong>Brains (Zep/LEANN Memory)</strong> - Create brains with Zep (cloud/self-hosted) or LEANN (local, 97% storage savings), store/retrieve chat memory, collections, and graph</li>
                     <li>🤖 <strong>Agents</strong> - Named agents with model, instructions, brain, properties, and actions (web, images, vision, embeddings)</li>
                     <li>👥 <strong>Hierarchical Teams</strong> - Multi-agent collaboration with orchestrators, nested teams, and shared memory that flows up the hierarchy</li>
                 </ul>
@@ -212,7 +212,10 @@
                     <div class="download-box">
                         <h3>Install via pip (Recommended)</h3>
                         <div class="code-block">
-                            <code>pip install ffmcp</code>
+                            <code>pip install ffmcp<br><br>
+# Optional: Install with specific providers<br>
+pip install ffmcp[zep]      # Zep memory<br>
+pip install ffmcp[leann]    # LEANN memory (local)</code>
                         </div>
                         <p class="note">
                             <a href="https://pypi.org/project/ffmcp/" target="_blank" style="color: #2a5298; text-decoration: underline;">📦 View on PyPI</a> | Requires Python 3.8 or higher
@@ -243,6 +246,9 @@ pip install -e .</code>
                         <div class="code-block">
                             <code># Configure API key<br>
 ffmcp config -p openai -k YOUR_KEY<br><br>
+# Or use LEANN for local memory (no API key needed)<br>
+pip install ffmcp[leann]<br>
+ffmcp brain create mybrain --backend leann<br><br>
 # Generate text<br>
 ffmcp generate "Hello, world!"</code>
                         </div>
@@ -274,9 +280,13 @@ ffmcp generate "Hello, world!"</code>
                 </div>
 
                 <div class="example-box">
-                    <h3>Brains & Memory (Zep)</h3>
+                    <h3>Brains & Memory (Zep or LEANN)</h3>
                     <div class="code-block">
-                        <code>ffmcp brain create mybrain<br>
+                        <code># Create a Zep brain (cloud/self-hosted)<br>
+ffmcp brain create my-zep-brain --backend zep<br><br>
+# Create a LEANN brain (local, no API key needed)<br>
+ffmcp brain create my-leann-brain --backend leann<br><br>
+# Use memory (works with both backends)<br>
 ffmcp brain memory add --role user --role-type user --content "Who was Octavia Butler?"<br>
 ffmcp brain memory get</code>
                     </div>
@@ -351,6 +361,11 @@ ffmcp tts "Hello, world!" output.mp3 --voice my-voice</code>
                 </div>
 
                 <div class="faq-item">
+                    <h3>What's the difference between Zep and LEANN for memory?</h3>
+                    <p>Zep is a cloud/self-hosted memory platform with full features including graph relationships. LEANN is a local vector index that offers 97% storage savings and works without any API keys - perfect for privacy-focused applications. Both backends support memory, collections, and document storage. Choose Zep for cloud features and graphs, or LEANN for local, private operation with minimal storage.</p>
+                </div>
+
+                <div class="faq-item">
                     <h3>Is ffmcp free to use?</h3>
                     <p>ffmcp itself is free and open-source (MIT License). However, you need API keys from the AI providers you want to use, and those providers charge based on usage. Many providers offer free tiers or credits to get started. If you find ffmcp useful, please consider <a href="https://github.com/sponsors/brandonhenry" target="_blank" style="color: #2a5298; text-decoration: underline;">sponsoring the project</a> to support continued development.</p>
                 </div>
@@ -374,7 +389,7 @@ ffmcp tts "Hello, world!" output.mp3 --voice my-voice</code>
                     <li><strong>Audio Processing:</strong> Transcribe audio files, translate speech, convert text to speech</li>
                     <li><strong>AI Agents:</strong> Create specialized AI assistants with specific capabilities and instructions</li>
                     <li><strong>Multi-Agent Workflows:</strong> Build teams of agents that collaborate on complex tasks</li>
-                    <li><strong>Memory Management:</strong> Store and retrieve conversation history, documents, and knowledge bases</li>
+                    <li><strong>Memory Management:</strong> Store and retrieve conversation history, documents, and knowledge bases with Zep (cloud/self-hosted) or LEANN (local, 97% storage savings)</li>
                     <li><strong>Embeddings & Search:</strong> Create embeddings for semantic search and similarity matching</li>
                     <li><strong>Automation:</strong> Integrate AI capabilities into scripts, CI/CD pipelines, and automated workflows</li>
                     <li><strong>Development Tools:</strong> Use AI for code generation, documentation, testing, and debugging</li>
